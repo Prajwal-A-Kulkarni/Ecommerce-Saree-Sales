@@ -1,0 +1,246 @@
+{% extends 'logistics/base_logistics.html' %}
+{% load static %}
+
+{% block title %}Catalog Catalog Bulk Upload | Zari & Grace Logistics{% endblock %}
+
+{% block active_upload %}active{% endblock %}
+{% block page_header %}Catalog Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container-wrap {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-row-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .form-row-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Success message alert */
+    .success-alert {
+        background-color: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-left: 4px solid var(--accent-success);
+        border-radius: var(--border-radius-sm);
+        padding: 16px;
+        margin-bottom: 24px;
+        color: #065f46;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* File dropzone styling */
+    .dropzone-area {
+        border: 2px dashed var(--border-color);
+        background-color: var(--bg-primary);
+        border-radius: var(--border-radius-md);
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-bottom: 24px;
+    }
+
+    .dropzone-area:hover, .dropzone-area.dragover {
+        border-color: var(--accent-primary);
+        background-color: rgba(79, 70, 229, 0.02);
+    }
+
+    .dropzone-area input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .dropzone-icon {
+        font-size: 48px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+    }
+
+    .dropzone-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .dropzone-subtext {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    /* Image Preview list */
+    .preview-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 12px;
+        margin-top: 15px;
+    }
+
+    .preview-thumb {
+        width: 80px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--border-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container-wrap">
+    <!-- Success Banner -->
+    {% if success_message %}
+    <div class="success-alert">
+        <i class="ph-fill ph-check-circle" style="font-size: 20px;"></i>
+        <span>{{ success_message }}</span>
+    </div>
+    {% endif %}
+
+    <div class="logistics-card">
+        <h3 class="detail-card-title"><i class="ph-bold ph-plus-circle"></i> Saree Bulk Listing Form</h3>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Saree Name -->
+            <div class="form-group">
+                <label for="name">Product Name</label>
+                <input type="text" name="name" id="name" required class="form-input" placeholder="e.g. Pastel Green Banarasi Organza Saree">
+            </div>
+
+            <!-- Price and Sale Price -->
+            <div class="form-row-grid">
+                <div class="form-group">
+                    <label for="price">Price (INR)</label>
+                    <input type="number" name="price" id="price" step="0.01" required class="form-input" placeholder="e.g. 7999.00">
+                </div>
+                <div class="form-group">
+                    <label for="sale_price">Sale Price (Optional, INR)</label>
+                    <input type="number" name="sale_price" id="sale_price" step="0.01" class="form-input" placeholder="e.g. 6999.00">
+                </div>
+            </div>
+
+            <!-- Stock quantity -->
+            <div class="form-group">
+                <label for="stock">Inventory Stock</label>
+                <input type="number" name="stock" id="stock" required class="form-input" value="10" placeholder="e.g. 10">
+            </div>
+
+            <!-- Categories Selection -->
+            <div class="form-row-grid">
+                <div class="form-group">
+                    <label for="category">Select Existing Category</label>
+                    <select name="category" id="category" class="form-input">
+                        <option value="">-- Default (All Sarees) --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new_category">Or Create New Category</label>
+                    <input type="text" name="new_category" id="new_category" class="form-input" placeholder="e.g. Pure Cotton Jamdani">
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="description">Product Description</label>
+                <textarea name="description" id="description" required class="form-input" rows="5" placeholder="Enter detailed fabric information, weave quality, zari style, and color details..." style="resize: vertical;"></textarea>
+            </div>
+
+            <!-- Multi Image Dropzone -->
+            <div class="form-group">
+                <label>Saree Media Files (Select multiple photos)</label>
+                <div class="dropzone-area" id="dropzone">
+                    <input type="file" name="images" id="imageInput" multiple required accept="image/*">
+                    <div class="dropzone-icon"><i class="ph-bold ph-images"></i></div>
+                    <div class="dropzone-text">Click or drag images here to upload</div>
+                    <div class="dropzone-subtext">Supports PNG, JPG, or JPEG formats. You can select multiple images at once.</div>
+                    
+                    <div class="preview-list" id="previewList"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-logistics btn-logistics-primary" style="width: 100%; height: 50px;">
+                <i class="ph-bold ph-megaphone"></i> Publish Saree to Storefront
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dropzone = document.getElementById('dropzone');
+        const input = document.getElementById('imageInput');
+        const previewList = document.getElementById('previewList');
+
+        // Handle drag events
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            dropzone.classList.remove('dragover');
+        });
+
+        // Handle file change previews
+        input.addEventListener('change', () => {
+            previewList.innerHTML = '';
+            const files = input.files;
+            
+            if (files.length > 0 && window.showToast) {
+                showToast(`${files.length} image files selected.`);
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-thumb';
+                    previewList.appendChild(img);
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Trigger toast notification if bulk uploaded successfully
+        {% if success_message %}
+            if (window.showToast) {
+                showToast('Saree published successfully!');
+            }
+        {% endif %}
+    });
+</script>
+{% endblock %}

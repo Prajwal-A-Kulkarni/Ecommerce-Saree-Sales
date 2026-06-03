@@ -1,0 +1,381 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Zari & Grace | Premium Glassmorphic Saree Boutique{% endblock %}</title>
+    
+    <!-- SEO Optimization -->
+    <meta name="description" content="Explore luxury sarees with premium glassmorphic shopping experiences. Tailored elegance in pure silk, georgette, and linen.">
+    <meta name="keywords" content="saree, luxury fashion, ecommerce, glassmorphism, online boutique">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    <style>
+        .header-search-wrap {
+            position: relative;
+            margin: 0 20px;
+            flex-grow: 1;
+            max-width: 260px;
+        }
+        @media (max-width: 768px) {
+            .header-search-wrap {
+                display: none; /* Hide on mobile/tablet to save space */
+            }
+        }
+        .search-input-container {
+            position: relative;
+            width: 100%;
+        }
+        .search-input-field {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 8px 16px 8px 36px;
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .search-input-field:focus {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 10px rgba(201, 169, 110, 0.2);
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .search-autocomplete-panel {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 24, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: var(--glass-shadow);
+            z-index: 1000;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        .autocomplete-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: background 0.2s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+        .autocomplete-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .autocomplete-thumb {
+            width: 32px;
+            height: 42px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+        .autocomplete-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .autocomplete-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .autocomplete-price {
+            font-size: 12px;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+        .autocomplete-no-results {
+            padding: 16px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        <div class="announcement-track">
+            <span>✧ LUXURY SAREES IN PURE HANDWOVEN SILK ✧ FREE SHIPPING ACROSS INDIA ✧ ESTEEMED HERITAGE CRAFTSMANSHIP ✧ 10% OFF ON FIRST PURCHASE ✧ USE CODE: FIRST10 ✧</span>
+            <span>✧ LUXURY SAREES IN PURE HANDWOVEN SILK ✧ FREE SHIPPING ACROSS INDIA ✧ ESTEEMED HERITAGE CRAFTSMANSHIP ✧ 10% OFF ON FIRST PURCHASE ✧ USE CODE: FIRST10 ✧</span>
+        </div>
+    </div>
+
+    <!-- Glassmorphic Header -->
+    <header class="glass-header">
+        <div class="header-container">
+            <a href="{% url 'store:home' %}" class="logo">
+                <span class="logo-text">ZARI & GRACE</span>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="{% url 'store:home' %}" class="nav-link">Home</a>
+                <a href="{% url 'store:product_list' %}" class="nav-link">Sarees</a>
+                <a href="{% url 'store:wishlist' %}" class="nav-link">Wishlist</a>
+                <a href="{% url 'store:cart' %}" class="nav-link">Cart</a>
+                {% if request.user.is_staff %}
+                <a href="{% url 'store:logistics_dashboard' %}" class="nav-link" style="color: var(--accent-gold);">Logistics Portal</a>
+                {% endif %}
+            </nav>
+
+            <!-- Global Search Autocomplete Wrap -->
+            <div class="header-search-wrap">
+                <div class="search-input-container">
+                    <input type="text" id="globalSearchInput" placeholder="Search sarees..." class="search-input-field" autocomplete="off">
+                    <i class="ph-bold ph-magnifying-glass search-icon"></i>
+                </div>
+                <div class="search-autocomplete-panel" id="searchAutocompletePanel" style="display: none;">
+                    <!-- Populated dynamically via AJAX -->
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <!-- Theme Toggle Button -->
+                <button class="icon-btn theme-toggle" id="themeToggle" aria-label="Toggle Theme">
+                    <i class="ph-bold ph-sun" id="themeIcon"></i>
+                </button>
+                
+                <!-- Wishlist Btn -->
+                <a href="{% url 'store:wishlist' %}" class="icon-btn wishlist-icon-link">
+                    <i class="ph-bold ph-heart"></i>
+                    <span class="badge" id="wishlistBadge">{{ wishlist_count }}</span>
+                </a>
+                
+                <!-- Cart Trigger Sidebar Btn -->
+                <button class="icon-btn" id="cartToggleBtn" aria-label="View Cart">
+                    <i class="ph-bold ph-shopping-bag"></i>
+                    <span class="badge" id="cartBadge">{{ cart_count }}</span>
+                </button>
+                
+                {% if request.user.is_authenticated %}
+                    <a href="{% url 'store:profile' %}" class="icon-btn" title="Profile">
+                        <i class="ph-bold ph-user"></i>
+                    </a>
+                    <a href="{% url 'store:logout' %}" class="icon-btn" title="Logout">
+                        <i class="ph-bold ph-sign-out"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'store:login' %}" class="icon-btn" title="Login">
+                        <i class="ph-bold ph-user-circle"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- AJAX Slide-in Cart Sidebar -->
+    <div class="cart-drawer-overlay" id="cartOverlay"></div>
+    <div class="cart-drawer" id="cartDrawer">
+        <div class="drawer-header">
+            <h3>Shopping Bag (<span id="drawerCount">{{ cart_count }}</span>)</h3>
+            <button class="close-btn" id="cartCloseBtn"><i class="ph-bold ph-x"></i></button>
+        </div>
+        <div class="drawer-body" id="drawerCartBody">
+            <!-- Loaded dynamically via AJAX -->
+            <div class="loading-spinner">
+                <i class="ph-bold ph-spinner spinner"></i>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="drawerSubtotal">₹0.00</span>
+            </div>
+            <a href="{% url 'store:checkout' %}" class="btn btn-primary btn-block">Checkout</a>
+            <a href="{% url 'store:cart' %}" class="btn btn-secondary btn-block">View Full Cart</a>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Glassmorphic Footer -->
+    <footer class="glass-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h2>ZARI & GRACE</h2>
+                <p>Redefining traditional luxury attire through clean glassmorphic digital experiences. Exquisite sarees curated for modern royalty.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="ph-bold ph-instagram-logo"></i></a>
+                    <a href="#" class="social-link"><i class="ph-bold ph-facebook-logo"></i></a>
+                    <a href="#" class="social-link"><i class="ph-bold ph-pinterest-logo"></i></a>
+                    <a href="#" class="social-link"><i class="ph-bold ph-twitter-logo"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-links">
+                <h4>Collections</h4>
+                <a href="{% url 'store:product_list' %}?category=silk">Pure Silk</a>
+                <a href="{% url 'store:product_list' %}?category=linen">Linen Elegance</a>
+                <a href="{% url 'store:product_list' %}?category=georgette">Georgette Grace</a>
+                <a href="{% url 'store:product_list' %}?category=cotton">Cotton Craft</a>
+            </div>
+
+            <div class="footer-links">
+                <h4>Customer Care</h4>
+                <a href="#">Shipping & Returns</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms & Conditions</a>
+                <a href="#">Contact Us</a>
+            </div>
+
+            <div class="footer-newsletter">
+                <h4>Stay Updated</h4>
+                <p>Subscribe to receive notifications of exclusive launches and seasonal edits.</p>
+                <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Subscribed to newsletter!');">
+                    <input type="email" placeholder="Your Email" required class="glass-input">
+                    <button type="submit" class="btn btn-gold btn-small">Subscribe</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Zari & Grace. Crafted with passion. Powered by Antigravity AI.</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Banner -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Product Quick View Modal -->
+    <div class="modal-overlay" id="productModalOverlay"></div>
+    <div class="product-quickview-modal" id="productQuickviewModal">
+        <button class="modal-close-btn" id="productModalCloseBtn" aria-label="Close modal"><i class="ph-bold ph-x"></i></button>
+        <div class="modal-body-content" id="productModalBody">
+            <div class="loading-spinner">
+                <i class="ph-bold ph-spinner spinner"></i>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- CDN scripts -->
+    <!-- Lenis for Smooth Scroll -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <!-- GSAP for scroll animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Custom scripts -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
+    <script>
+        // Global Autocomplete Search
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('globalSearchInput');
+            const searchPanel = document.getElementById('searchAutocompletePanel');
+            let debounceTimer = null;
+
+            if (searchInput && searchPanel) {
+                searchInput.addEventListener('input', () => {
+                    clearTimeout(debounceTimer);
+                    const q = searchInput.value.trim();
+
+                    if (q.length < 2) {
+                        searchPanel.style.display = 'none';
+                        searchPanel.innerHTML = '';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetch(`/ajax/search/autocomplete/?q=${encodeURIComponent(q)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            searchPanel.innerHTML = '';
+                            
+                            if (data.products && data.products.length > 0) {
+                                data.products.forEach(p => {
+                                    const a = document.createElement('a');
+                                    a.className = 'autocomplete-item';
+                                    a.href = p.detail_url;
+
+                                    const thumbUrl = p.image_url || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=150';
+                                    const priceHtml = p.sale_price 
+                                        ? `<span class="autocomplete-price">₹${p.sale_price} <span style="text-decoration:line-through; font-size:10px; color:var(--text-muted); margin-left:4px;">₹${p.price}</span></span>`
+                                        : `<span class="autocomplete-price">₹${p.price}</span>`;
+
+                                    a.innerHTML = `
+                                        <img src="${thumbUrl}" class="autocomplete-thumb" alt="${p.name}">
+                                        <div class="autocomplete-details">
+                                            <div class="autocomplete-name">${p.name}</div>
+                                            ${priceHtml}
+                                        </div>
+                                    `;
+                                    searchPanel.appendChild(a);
+                                });
+                            } else {
+                                const emptyDiv = document.createElement('div');
+                                emptyDiv.className = 'autocomplete-no-results';
+                                emptyDiv.textContent = 'No matching sarees found';
+                                searchPanel.appendChild(emptyDiv);
+                            }
+                            searchPanel.style.display = 'block';
+                        })
+                        .catch(err => {
+                            console.error(err);
+                        });
+                    }, 250);
+                });
+
+                // Hide search panel when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!searchInput.contains(e.target) && !searchPanel.contains(e.target)) {
+                        searchPanel.style.display = 'none';
+                    }
+                });
+
+                // Re-show panel when focusing if it has content
+                searchInput.addEventListener('focus', () => {
+                    if (searchInput.value.trim().length >= 2 && searchPanel.children.length > 0) {
+                        searchPanel.style.display = 'block';
+                    }
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

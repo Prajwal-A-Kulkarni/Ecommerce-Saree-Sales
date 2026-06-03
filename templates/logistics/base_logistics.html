@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Zari & Grace Logistics Panel{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Core Logistics Stylesheet -->
+    <style>
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-sidebar: #0f172a;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-primary: #4f46e5;
+            --accent-primary-hover: #4338ca;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.02);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.01);
+            --border-radius-sm: 6px;
+            --border-radius-md: 10px;
+            --border-radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-brand {
+            padding: 30px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        .sidebar-brand-badge {
+            background-color: rgba(79, 70, 229, 0.2);
+            border: 1px solid var(--accent-primary);
+            color: #a5b4fc;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .sidebar-menu {
+            flex-grow: 1;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--border-radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .menu-link:hover, .menu-link.active {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-link.active {
+            background-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        .menu-link i {
+            font-size: 18px;
+        }
+
+        .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--accent-primary);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .admin-info h5 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .admin-info span {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        /* Main Workspace Content */
+        .workspace {
+            margin-left: 280px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .content-body {
+            padding: 40px;
+            flex-grow: 1;
+        }
+
+        /* Card panels - Light Theme */
+        .logistics-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        /* Form elements - Light Theme */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-primary);
+            border-radius: var(--border-radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-primary);
+            background-color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Buttons - Light Theme */
+        .btn-logistics {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--border-radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-logistics-primary {
+            background-color: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        .btn-logistics-primary:hover {
+            background-color: var(--accent-primary-hover);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+        }
+
+        .btn-logistics-secondary {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-logistics-secondary:hover {
+            background-color: var(--bg-primary);
+            border-color: var(--text-secondary);
+        }
+
+        /* Status colors */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bg-Pending { background-color: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        .bg-Paid { background-color: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .bg-Packed { background-color: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .bg-Shipped { background-color: #faf5ff; color: #7c3aed; border: 1px solid #e9d5ff; }
+        .bg-In-Route { background-color: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+        .bg-Delivered { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .bg-Failed { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        /* Toast notifications container */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-primary);
+            color: var(--text-primary);
+            padding: 16px 24px;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-lg);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: toast-in 0.3s forwards;
+            transition: all 0.5s ease;
+        }
+
+        @keyframes toast-in {
+            100% { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-title">Z&G Operations</div>
+            <span class="sidebar-brand-badge">Logistics</span>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <a href="{% url 'store:logistics_dashboard' %}" class="menu-link {% block active_dashboard %}{% endblock %}" id="menuDashboard">
+                <i class="ph-bold ph-squares-four"></i>
+                Dashboard
+            </a>
+            
+            <a href="{% url 'store:logistics_bulk_upload' %}" class="menu-link {% block active_upload %}{% endblock %}" id="menuUpload">
+                <i class="ph-bold ph-upload-simple"></i>
+                Standard Bulk Upload
+            </a>
+
+            <a href="{% url 'store:logistics_smart_uploader' %}" class="menu-link {% block active_smart_upload %}{% endblock %}" id="menuSmartUpload">
+                <i class="ph-bold ph-cards"></i>
+                Smart Saree Uploader
+            </a>
+
+            <a href="{% url 'store:logistics_product_list' %}" class="menu-link {% block active_catalog %}{% endblock %}" id="menuCatalog">
+                <i class="ph-bold ph-folder-open"></i>
+                Catalog Manager
+            </a>
+            
+            <a href="{% url 'store:home' %}" class="menu-link" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                <i class="ph-bold ph-arrow-square-out"></i>
+                Boutique Site
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="admin-avatar">
+                {{ request.user.username|slice:":1"|upper }}
+            </div>
+            <div class="admin-info">
+                <h5>{{ request.user.username }}</h5>
+                <span>System Admin</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Workspace Area -->
+    <div class="workspace">
+        <header class="top-navbar">
+            <h2 class="page-title">{% block page_header %}{% endblock %}</h2>
+            <div style="font-size: 13px; color: var(--text-secondary); font-weight: 500;">
+                Today: <span id="currentDateText"></span>
+            </div>
+        </header>
+        
+        <main class="content-body">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Toasts container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set Date
+            const d = new Date();
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            document.getElementById('currentDateText').textContent = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        });
+
+        // Global Toast Notification Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            let iconClass = 'ph-bold ph-check-circle';
+            if (type === 'error') {
+                iconClass = 'ph-bold ph-x-circle';
+                toast.style.borderLeftColor = 'var(--accent-danger)';
+            }
+            
+            toast.innerHTML = `<i class="${iconClass}" style="font-size:18px; color: ${type === 'error' ? 'var(--accent-danger)' : 'var(--accent-success)'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+        
+        window.showToast = showToast;
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,369 @@
+{% extends "logistics/base_logistics.html" %}
+{% load static %}
+
+{% block title %}Edit Saree - Zari & Grace Operations{% endblock %}
+
+{% block active_catalog %}active{% endblock %}
+
+{% block page_header %}Edit Saree Inventory Entry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .editor-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 30px;
+        align-items: start;
+    }
+
+    /* Left Form Panel */
+    .form-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 30px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .form-section-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+    }
+
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    /* Right Image Manager Panel */
+    .image-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .images-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .image-edit-box {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        background-color: var(--bg-primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .image-edit-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Delete Overlay styling */
+    .image-delete-checkbox {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        z-index: 10;
+        accent-color: var(--accent-danger);
+    }
+
+    .delete-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(239, 68, 68, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .delete-overlay i {
+        color: #ffffff;
+        font-size: 24px;
+    }
+
+    /* If marked for deletion, show red overlay and borders */
+    .image-edit-box.marked-delete {
+        border-color: var(--accent-danger);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .image-edit-box.marked-delete .delete-overlay {
+        opacity: 1;
+    }
+
+    /* Upload Box */
+    .new-image-uploader {
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius-sm);
+        padding: 20px 15px;
+        text-align: center;
+        cursor: pointer;
+        background-color: var(--bg-primary);
+        transition: all 0.2s ease;
+    }
+
+    .new-image-uploader:hover {
+        border-color: var(--accent-primary);
+        background-color: rgba(79, 70, 229, 0.01);
+    }
+
+    .new-image-uploader i {
+        font-size: 28px;
+        color: var(--accent-primary);
+        margin-bottom: 8px;
+    }
+
+    .new-image-uploader p {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .new-images-preview-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .preview-file-item {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--text-secondary);
+    }
+
+    /* Switch Style in Edit Form */
+    .active-toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 10px;
+    }
+
+    .editor-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 30px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data" action="{% url 'store:logistics_product_edit' product.id %}">
+    {% csrf_token %}
+    <div class="editor-layout">
+        <!-- Left: Product Metadata Fields -->
+        <div class="form-panel">
+            <h3 class="form-section-title">Saree Specifications</h3>
+            
+            <div class="form-group">
+                <label for="id_name">Saree Listing Name *</label>
+                <input type="text" name="name" id="id_name" class="form-input" value="{{ product.name }}" required placeholder="e.g. Royal Blue Zari Banarasi Silk Saree">
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="id_price">Base Price (₹) *</label>
+                    <input type="number" step="0.01" name="price" id="id_price" class="form-input" value="{{ product.price }}" required placeholder="Original list price">
+                </div>
+
+                <div class="form-group">
+                    <label for="id_sale_price">Discounted Sale Price (₹)</label>
+                    <input type="number" step="0.01" name="sale_price" id="id_sale_price" class="form-input" value="{% if product.sale_price %}{{ product.sale_price }}{% endif %}" placeholder="Optional discounted price">
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label for="id_category">Category *</label>
+                    <select name="category" id="id_category" class="form-input" required>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_stock">Stock Level (Qty) *</label>
+                    <input type="number" name="stock" id="id_stock" class="form-input" value="{{ product.stock }}" required min="0">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_description">Saree Narrative Description *</label>
+                <textarea name="description" id="id_description" class="form-input" rows="8" required placeholder="Describe the saree weaving style, details, craftsmanship..." style="resize: vertical;">{{ product.description }}</textarea>
+            </div>
+
+            <div class="form-group active-toggle-wrap">
+                <label style="margin-bottom: 0;">Visible in Store Catalog:</label>
+                <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                    <input type="checkbox" name="is_active" {% if product.is_active %}checked{% endif %}>
+                    <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s ease; border-radius: 24px;"></span>
+                </label>
+                <span id="activeStatusLabel" style="font-size: 13px; font-weight: 500; color: {% if product.is_active %}var(--accent-success){% else %}var(--text-secondary){% endif %};">
+                    {% if product.is_active %}Active & Shoppable{% else %}Inactive & Hidden{% endif %}
+                </span>
+            </div>
+
+            <div class="editor-footer">
+                <a href="{% url 'store:logistics_product_list' %}" class="btn-logistics btn-logistics-secondary">
+                    Cancel & Return
+                </a>
+                <button type="submit" class="btn-logistics btn-logistics-primary">
+                    <i class="ph-bold ph-floppy-disk"></i> Save Saree Listing
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Image Manager -->
+        <div class="image-panel">
+            <h3 class="form-section-title" style="margin-bottom: 10px;">Gallery Images</h3>
+            <p style="font-size:12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.4;">
+                Select image checkboxes to delete on save. Hover to preview. First image is used as cover thumbnail.
+            </p>
+
+            <div class="images-grid">
+                {% for img in product.images.all %}
+                <div class="image-edit-box" id="img-edit-box-{{ img.id }}" onclick="toggleImageDelete('{{ img.id }}')">
+                    <!-- Invisible Checkbox that passes values back to view -->
+                    <input type="checkbox" name="deleted_images" value="{{ img.id }}" id="chk-delete-{{ img.id }}" class="image-delete-checkbox" onclick="event.stopPropagation(); syncBoxClass('{{ img.id }}')">
+                    
+                    <img src="{{ img.image.url }}" alt="Saree detail photo">
+                    
+                    <!-- Delete Overlay visual indicator -->
+                    <div class="delete-overlay">
+                        <i class="ph-bold ph-trash"></i>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="grid-column: span 3; text-align: center; padding: 30px 10px; color: var(--text-muted);">
+                    <i class="ph ph-images" style="font-size: 32px; margin-bottom: 8px;"></i>
+                    <p style="font-size: 12px;">No images associated</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Upload new photos -->
+            <div class="new-image-uploader" onclick="document.getElementById('editFileInput').click()">
+                <i class="ph-bold ph-upload-simple"></i>
+                <p>Upload New Gallery Images</p>
+                <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Choose files or drag them here</span>
+                <input type="file" name="images" id="editFileInput" multiple accept="image/*" style="display: none;" onchange="previewNewUploads(this)">
+            </div>
+
+            <div class="new-images-preview-list" id="newImagesPreview">
+                <!-- Dynamically populated selected files -->
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Style toggle checkbox active label
+    const activeToggle = document.querySelector('input[name="is_active"]');
+    const statusLabel = document.getElementById('activeStatusLabel');
+
+    if (activeToggle && statusLabel) {
+        activeToggle.addEventListener('change', () => {
+            if (activeToggle.checked) {
+                statusLabel.textContent = 'Active & Shoppable';
+                statusLabel.style.color = 'var(--accent-success)';
+            } else {
+                statusLabel.textContent = 'Inactive & Hidden';
+                statusLabel.style.color = 'var(--text-secondary)';
+            }
+        });
+    }
+
+    // Toggle logic for deleting existing images
+    function toggleImageDelete(imgId) {
+        const checkbox = document.getElementById(`chk-delete-${imgId}`);
+        if (checkbox) {
+            checkbox.checked = !checkbox.checked;
+            syncBoxClass(imgId);
+        }
+    }
+
+    function syncBoxClass(imgId) {
+        const checkbox = document.getElementById(`chk-delete-${imgId}`);
+        const box = document.getElementById(`img-edit-box-${imgId}`);
+        if (checkbox && box) {
+            if (checkbox.checked) {
+                box.classList.add('marked-delete');
+            } else {
+                box.classList.remove('marked-delete');
+            }
+        }
+    }
+
+    // Show files loaded to upload
+    function previewNewUploads(input) {
+        const previewContainer = document.getElementById('newImagesPreview');
+        previewContainer.innerHTML = ''; // Reset
+
+        if (input.files && input.files.length > 0) {
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                const item = document.createElement('div');
+                item.className = 'preview-file-item';
+                
+                // Truncate name if long
+                let name = file.name;
+                if (name.length > 25) {
+                    name = name.substring(0, 15) + '...' + name.substring(name.length - 8);
+                }
+
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap: 8px;">
+                        <i class="ph ph-file-image" style="font-size:16px; color: var(--accent-primary)"></i>
+                        <span>${name}</span>
+                    </div>
+                    <span style="color:var(--text-muted); font-size:11px;">${(file.size / 1024).toFixed(1)} KB</span>
+                `;
+                previewContainer.appendChild(item);
+            }
+        }
+    }
+</script>
+{% endblock %}

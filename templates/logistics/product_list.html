@@ -1,0 +1,434 @@
+{% extends "logistics/base_logistics.html" %}
+{% load static %}
+
+{% block title %}Catalog Manager - Zari & Grace Operations{% endblock %}
+
+{% block active_catalog %}active{% endblock %}
+
+{% block page_header %}Catalog Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Catalog Header Layout */
+    .catalog-filter-bar {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 20px 24px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .filter-form {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        flex-grow: 1;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-select {
+        min-width: 180px;
+    }
+
+    /* Product Catalog Table */
+    .catalog-table-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .catalog-table-wrap {
+        overflow-x: auto;
+    }
+
+    .catalog-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .catalog-table th {
+        background-color: #fafbfc;
+        padding: 16px 24px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+        letter-spacing: 0.5px;
+    }
+
+    .catalog-table td {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 14px;
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .catalog-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .product-thumb-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        background-color: var(--bg-primary);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-thumb-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-thumb-wrapper i {
+        font-size: 20px;
+        color: var(--text-muted);
+    }
+
+    .product-name-link {
+        font-weight: 600;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .product-name-link:hover {
+        color: var(--accent-primary);
+    }
+
+    /* Price Styles */
+    .price-regular {
+        font-weight: 500;
+    }
+
+    .price-sale-tag {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--accent-danger);
+    }
+
+    .price-original-striked {
+        font-size: 12px;
+        color: var(--text-muted);
+        text-decoration: line-through;
+        margin-left: 5px;
+    }
+
+    /* Stock Status Badges */
+    .stock-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .stock-in { background-color: rgba(16, 185, 129, 0.08); color: var(--accent-success); }
+    .stock-low { background-color: rgba(245, 158, 11, 0.08); color: var(--accent-warning); }
+    .stock-out { background-color: rgba(239, 68, 68, 0.08); color: var(--accent-danger); }
+
+    /* Elegant Custom iOS Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #cbd5e1;
+        transition: .3s ease;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .3s ease;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    input:checked + .slider {
+        background-color: var(--accent-success);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+
+    /* Actions Column */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-action-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--border-color);
+        background-color: #ffffff;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-action-icon:hover {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        border-color: var(--text-secondary);
+    }
+
+    .btn-action-icon.edit:hover {
+        color: var(--accent-primary);
+        border-color: var(--accent-primary);
+        background-color: rgba(79, 70, 229, 0.02);
+    }
+
+    /* Empty catalog state */
+    .empty-catalog {
+        padding: 80px 40px;
+        text-align: center;
+        color: var(--text-secondary);
+    }
+
+    .empty-catalog i {
+        font-size: 56px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+    }
+
+    .empty-catalog h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: var(--text-primary);
+    }
+
+    .empty-catalog p {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filtering & Search Bar -->
+<div class="catalog-filter-bar">
+    <form method="GET" action="{% url 'store:logistics_product_list' %}" class="filter-form" id="catalogFilterForm">
+        <div class="search-box-wrap" style="min-width: 280px; flex-grow: 1;">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search catalog by name or description..." class="form-input" style="padding-right: 40px; background-color: var(--bg-primary);">
+            <button type="submit" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
+                <i class="ph-bold ph-magnifying-glass"></i>
+            </button>
+        </div>
+
+        <div class="filter-group">
+            <select name="category" class="form-input filter-select" onchange="document.getElementById('catalogFilterForm').submit()">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if selected_category == cat.id|stringformat:"i" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if search_query or selected_category %}
+        <a href="{% url 'store:logistics_product_list' %}" class="btn-logistics btn-logistics-secondary" style="padding: 10px 16px; font-size: 13px;">
+            Clear Filters
+        </a>
+        {% endif %}
+    </form>
+
+    <a href="{% url 'store:logistics_smart_uploader' %}" class="btn-logistics btn-logistics-primary" style="padding: 10px 20px; font-size: 13px;">
+        <i class="ph-bold ph-plus"></i> Smart Add Saree
+    </a>
+</div>
+
+<!-- Products Grid Table -->
+<div class="catalog-table-card">
+    {% if products %}
+    <div class="catalog-table-wrap">
+        <table class="catalog-table">
+            <thead>
+                <tr>
+                    <th style="width: 40%;">Saree Details</th>
+                    <th style="width: 15%;">Category</th>
+                    <th style="width: 15%;">Pricing (₹)</th>
+                    <th style="width: 12%;">Stock Level</th>
+                    <th style="width: 10%;">Active Status</th>
+                    <th style="width: 8%; text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr id="product-row-{{ product.id }}">
+                    <td>
+                        <div class="product-cell">
+                            <div class="product-thumb-wrapper">
+                                {% if product.images.first %}
+                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                                {% else %}
+                                <i class="ph ph-image"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <a href="{% url 'store:logistics_product_edit' product.id %}" class="product-name-link">{{ product.name }}</a>
+                                <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">ID: #ZG-P-{{ product.id|stringformat:"04d" }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 500; color: var(--text-secondary);">{{ product.category.name }}</span>
+                    </td>
+                    <td>
+                        {% if product.sale_price %}
+                        <div class="price-sale-tag">₹{{ product.sale_price }}</div>
+                        <div class="price-original-striked">₹{{ product.price }}</div>
+                        {% else %}
+                        <div class="price-regular">₹{{ product.price }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if product.stock == 0 %}
+                        <span class="stock-badge stock-out">Out of Stock</span>
+                        {% elif product.stock < 5 %}
+                        <span class="stock-badge stock-low">Low Stock ({{ product.stock }})</span>
+                        {% else %}
+                        <span class="stock-badge stock-in">In Stock ({{ product.stock }})</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" {% if product.is_active %}checked{% endif %} onchange="toggleProductActive('{{ product.id }}')">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <div class="action-buttons" style="justify-content: flex-end;">
+                            <a href="{% url 'store:logistics_product_edit' product.id %}" class="btn-action-icon edit" title="Edit Saree details">
+                                <i class="ph ph-pencil"></i>
+                            </a>
+                            <a href="{% url 'store:product_detail' product.slug %}" class="btn-action-icon" target="_blank" title="View Saree on Boutique Site">
+                                <i class="ph ph-arrow-square-out"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-catalog">
+        <i class="ph-bold ph-folder-open"></i>
+        <h3>No Products Found</h3>
+        <p>Your search returned no products in the inventory catalog. Change filters or add new sarees to get started.</p>
+        <div style="display:flex; justify-content:center; gap:12px;">
+            <a href="{% url 'store:logistics_product_list' %}" class="btn-logistics btn-logistics-secondary">Clear Filters</a>
+            <a href="{% url 'store:logistics_smart_uploader' %}" class="btn-logistics btn-logistics-primary">Smart Saree Uploader</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleProductActive(productId) {
+        fetch("{% url 'store:ajax_product_toggle_active' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ product_id: productId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || "Failed to update product status.", 'error');
+                // Revert checkbox state on error
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("Network error occurred.", 'error');
+        });
+    }
+
+    // CSRF Helper
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

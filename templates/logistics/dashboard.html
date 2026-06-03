@@ -1,0 +1,932 @@
+{% extends 'logistics/base_logistics.html' %}
+{% load static %}
+
+{% block title %}Logistics Dashboard | Zari & Grace{% endblock %}
+
+{% block active_dashboard %}active{% endblock %}
+{% block page_header %}Logistics Overview{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-md);
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: var(--shadow-sm);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .icon-revenue { background-color: rgba(79, 70, 229, 0.1); color: var(--accent-primary); }
+    .icon-orders { background-color: rgba(245, 158, 11, 0.1); color: var(--accent-warning); }
+    .icon-transit { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .icon-completed { background-color: rgba(16, 185, 129, 0.1); color: var(--accent-success); }
+
+    .stat-details h3 {
+        font-family: 'Outfit', sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    .stat-details p {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Tabs Panel */
+    .dashboard-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .panel-header {
+        padding: 24px 30px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .search-box-wrap {
+        position: relative;
+        min-width: 320px;
+    }
+
+    .search-box-wrap input {
+        width: 100%;
+        padding: 10px 40px 10px 16px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius-sm);
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.2s ease;
+    }
+
+    .search-box-wrap input:focus {
+        border-color: var(--accent-primary);
+    }
+
+    .search-box-wrap button {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+
+    /* Custom Tabs Navigation */
+    .tabs-nav {
+        display: flex;
+        border-bottom: 1px solid var(--border-color);
+        background-color: #fafbfc;
+        padding: 0 20px;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 18px 24px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tab-btn:hover {
+        color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+        color: var(--accent-primary);
+        border-bottom-color: var(--accent-primary);
+    }
+
+    .tab-badge {
+        font-size: 10px;
+        background-color: var(--border-color);
+        color: var(--text-secondary);
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-weight: 700;
+    }
+
+    .tab-btn.active .tab-badge {
+        background-color: var(--accent-primary);
+        color: #ffffff;
+    }
+
+    /* Tab Content Grid */
+    .tab-content {
+        display: none;
+        padding: 20px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Orders List Table */
+    .logistics-table-wrap {
+        overflow-x: auto;
+    }
+
+    .logistics-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .logistics-table th, .logistics-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 14px;
+    }
+
+    .logistics-table th {
+        font-weight: 600;
+        color: var(--text-secondary);
+        background-color: #fafbfc;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+    }
+
+    .logistics-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .logistics-table tbody tr:hover {
+        background-color: #fafbfc;
+    }
+
+    .order-id-label {
+        font-family: monospace;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .customer-cell h4 {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+
+    .customer-cell span {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .shipping-details-cell span {
+        display: block;
+        font-size: 12px;
+    }
+
+    .shipping-details-cell .courier {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .shipping-details-cell .track-id {
+        color: var(--accent-primary);
+        font-family: monospace;
+    }
+
+    .no-shipping {
+        color: var(--accent-danger);
+        font-size: 12px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if low_stock_count > 0 %}
+<div class="low-stock-alert-banner" style="background-color: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; padding: 16px 24px; border-radius: var(--border-radius-md); margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <i class="ph-bold ph-warning-circle" style="font-size: 24px; color: #e11d48;"></i>
+        <div>
+            <h4 style="font-weight: 700; margin: 0; font-size: 14px;">Low Stock Warning</h4>
+            <p style="margin: 2px 0 0 0; font-size: 12px; color: #e11d48; opacity: 0.9;">
+                There are {{ low_stock_count }} items with stock levels below 5. Please review and restock them.
+            </p>
+        </div>
+    </div>
+    <button class="btn-logistics btn-logistics-secondary btn-small" onclick="document.querySelector('[data-tab=tab-lowstock]').click();" style="border-color: #fda4af; background-color: #ffe4e6; color: #9f1239; padding: 6px 12px; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        View Items
+    </button>
+</div>
+{% endif %}
+
+<!-- Stats Row -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon icon-revenue"><i class="ph-bold ph-currency-inr"></i></div>
+        <div class="stat-details">
+            <h3>₹{{ total_revenue }}</h3>
+            <p>Net Revenue</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon icon-orders"><i class="ph-bold ph-receipt"></i></div>
+        <div class="stat-details">
+            <h3>{{ total_orders }}</h3>
+            <p>Total Orders</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon icon-transit"><i class="ph-bold ph-truck"></i></div>
+        <div class="stat-details">
+            <h3>{{ in_transit_shipments }}</h3>
+            <p>In Transit</p>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon icon-completed"><i class="ph-bold ph-sparkle"></i></div>
+        <div class="stat-details">
+            <h3>{{ completed_deliveries }}</h3>
+            <p>Deliveries Completed</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Board Panel -->
+<div class="dashboard-panel">
+    <div class="panel-header">
+        <h3 style="font-family: 'Outfit', sans-serif; font-size:18px;">Operations Registry</h3>
+        
+        <form method="GET" class="search-box-wrap">
+            <input type="text" name="search" placeholder="Search Order ID, name, courier, track ID..." value="{{ search_query }}">
+            <button type="submit">
+                <i class="ph-bold ph-magnifying-glass"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Tabs Nav -->
+    <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tab-processing">
+            Needs Processing
+            <span class="tab-badge">{{ pending_orders.count }}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-transit">
+            In Transit
+            <span class="tab-badge">{{ transit_orders.count }}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-delivered">
+            Delivered
+            <span class="tab-badge">{{ delivered_orders.count }}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-failed">
+            Payment Failed
+            <span class="tab-badge">{{ failed_orders.count }}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-abandoned">
+            Abandoned Checkouts
+            <span class="tab-badge" style="background-color: #e2e8f0; color: #475569;">{{ abandoned_checkouts.count }}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-lowstock">
+            Low Stock Alerts
+            <span class="tab-badge" style="background-color: #fecdd3; color: #9f1239;">{{ low_stock_count }}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-analytics">
+            <i class="ph ph-chart-bar" style="font-size: 16px;"></i> Analytics
+        </button>
+    </div>
+
+    <!-- Tab 1: Needs Processing -->
+    <div class="tab-content active" id="tab-processing">
+        <div class="logistics-table-wrap">
+            {% if pending_orders %}
+            <table class="logistics-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Details</th>
+                        <th>Order Date</th>
+                        <th>Amount</th>
+                        <th>Payment Status</th>
+                        <th>Shipment Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in pending_orders %}
+                    <tr>
+                        <td class="order-id-label">#ZG-{{ order.id|stringformat:"05d" }}</td>
+                        <td class="customer-cell">
+                            <h4>{{ order.first_name }} {{ order.last_name }}</h4>
+                            <span>{{ order.email }} &bull; {{ order.phone }}</span>
+                        </td>
+                        <td>{{ order.created_at|date:"d M Y, H:i" }}</td>
+                        <td style="font-weight: 600;">₹{{ order.total_amount }}</td>
+                        <td>
+                            {% if order.payment_method == 'COD' %}
+                                <span class="status-badge" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a;">COD</span>
+                            {% elif order.status == 'Paid' %}
+                                <span class="status-badge bg-Paid">Paid</span>
+                            {% elif order.status == 'Failed' %}
+                                <span class="status-badge bg-Failed">Failed</span>
+                            {% else %}
+                                <span class="status-badge bg-Pending">Unpaid (Pending)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge bg-{{ order.status|cut:' ' }}">{{ order.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'store:logistics_order_detail' order.id %}" class="btn-logistics btn-logistics-secondary btn-small">
+                                Process Shipment
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="ph ph-circle-dashed" style="font-size: 36px; color: var(--text-muted); margin-bottom:10px; display:block;"></i>
+                No shipments awaiting processing.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab 2: In Transit -->
+    <div class="tab-content" id="tab-transit">
+        <div class="logistics-table-wrap">
+            {% if transit_orders %}
+            <table class="logistics-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Details</th>
+                        <th>Courier Partner / ID</th>
+                        <th>Amount</th>
+                        <th>Payment Status</th>
+                        <th>Shipment Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in transit_orders %}
+                    <tr>
+                        <td class="order-id-label">#ZG-{{ order.id|stringformat:"05d" }}</td>
+                        <td class="customer-cell">
+                            <h4>{{ order.first_name }} {{ order.last_name }}</h4>
+                            <span>{{ order.email }}</span>
+                        </td>
+                        <td class="shipping-details-cell">
+                            {% if order.shipping_id %}
+                            <span class="courier">{{ order.shipping_courier }}</span>
+                            <span class="track-id">{{ order.shipping_id }}</span>
+                            {% else %}
+                            <span class="no-shipping">No tracking assigned</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 600;">₹{{ order.total_amount }}</td>
+                        <td>
+                            {% if order.payment_method == 'COD' %}
+                                <span class="status-badge" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a;">COD</span>
+                            {% elif order.status == 'Paid' %}
+                                <span class="status-badge bg-Paid">Paid</span>
+                            {% elif order.status == 'Failed' %}
+                                <span class="status-badge bg-Failed">Failed</span>
+                            {% else %}
+                                <span class="status-badge bg-Pending">Unpaid (Pending)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge bg-{{ order.status|cut:' ' }}">{{ order.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'store:logistics_order_detail' order.id %}" class="btn-logistics btn-logistics-secondary btn-small">
+                                Update Tracking
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="ph ph-truck" style="font-size: 36px; color: var(--text-muted); margin-bottom:10px; display:block;"></i>
+                No active shipments in transit.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab 3: Delivered -->
+    <div class="tab-content" id="tab-delivered">
+        <div class="logistics-table-wrap">
+            {% if delivered_orders %}
+            <table class="logistics-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Details</th>
+                        <th>Carrier Info</th>
+                        <th>Delivered On</th>
+                        <th>Amount</th>
+                        <th>Payment Status</th>
+                        <th>Shipment Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in delivered_orders %}
+                    <tr>
+                        <td class="order-id-label">#ZG-{{ order.id|stringformat:"05d" }}</td>
+                        <td class="customer-cell">
+                            <h4>{{ order.first_name }} {{ order.last_name }}</h4>
+                            <span>{{ order.email }}</span>
+                        </td>
+                        <td class="shipping-details-cell">
+                            <span class="courier">{{ order.shipping_courier }}</span>
+                            <span class="track-id">{{ order.shipping_id }}</span>
+                        </td>
+                        <td>{{ order.updated_at|date:"d M Y, H:i" }}</td>
+                        <td style="font-weight: 600;">₹{{ order.total_amount }}</td>
+                        <td>
+                            {% if order.payment_method == 'COD' %}
+                                <span class="status-badge" style="background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a;">COD</span>
+                            {% elif order.status == 'Paid' %}
+                                <span class="status-badge bg-Paid">Paid</span>
+                            {% elif order.status == 'Failed' %}
+                                <span class="status-badge bg-Failed">Failed</span>
+                            {% else %}
+                                <span class="status-badge bg-Pending">Unpaid (Pending)</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge bg-{{ order.status|cut:' ' }}">{{ order.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'store:logistics_order_detail' order.id %}" class="btn-logistics btn-logistics-secondary btn-small">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="ph ph-sparkle" style="font-size: 36px; color: var(--text-muted); margin-bottom:10px; display:block;"></i>
+                No shipments delivered yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab 4: Payment Failed -->
+    <div class="tab-content" id="tab-failed">
+        <div class="logistics-table-wrap">
+            {% if failed_orders %}
+            <table class="logistics-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Details</th>
+                        <th>Order Date</th>
+                        <th>Amount</th>
+                        <th>Payment Status</th>
+                        <th>Shipment Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in failed_orders %}
+                    <tr>
+                        <td class="order-id-label">#ZG-{{ order.id|stringformat:"05d" }}</td>
+                        <td class="customer-cell">
+                            <h4>{{ order.first_name }} {{ order.last_name }}</h4>
+                            <span>{{ order.email }}</span>
+                        </td>
+                        <td>{{ order.created_at|date:"d M Y, H:i" }}</td>
+                        <td style="font-weight: 600;">₹{{ order.total_amount }}</td>
+                        <td>
+                            <span class="status-badge bg-Failed">Failed</span>
+                        </td>
+                        <td>
+                            <span class="status-badge bg-{{ order.status|cut:' ' }}">{{ order.status }}</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'store:logistics_order_detail' order.id %}" class="btn-logistics btn-logistics-secondary btn-small">
+                                View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="ph ph-x-circle" style="font-size: 36px; color: var(--text-muted); margin-bottom:10px; display:block;"></i>
+                No failed orders.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab 5: Abandoned Checkouts -->
+    <div class="tab-content" id="tab-abandoned">
+        <div class="logistics-table-wrap">
+            {% if abandoned_checkouts %}
+            <table class="logistics-table">
+                <thead>
+                    <tr>
+                        <th>Checkout ID</th>
+                        <th>Customer Details</th>
+                        <th>Initiated Date</th>
+                        <th>Cart Total</th>
+                        <th>Status</th>
+                        <th>Recovery Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in abandoned_checkouts %}
+                    <tr id="abandoned-row-{{ order.id }}">
+                        <td class="order-id-label">#ZG-{{ order.id|stringformat:"05d" }}</td>
+                        <td class="customer-cell">
+                            <h4>{{ order.first_name }} {{ order.last_name }}</h4>
+                            <span>{{ order.email }} &bull; {{ order.phone }}</span>
+                        </td>
+                        <td>{{ order.created_at|date:"d M Y, H:i" }}</td>
+                        <td style="font-weight: 600;">₹{{ order.total_amount }}</td>
+                        <td>
+                            <span class="status-badge bg-Pending">Abandoned (Pending)</span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn-logistics btn-logistics-primary btn-small send-recovery-btn" data-order-id="{{ order.id }}">
+                                <i class="ph ph-envelope-simple" style="margin-right: 5px;"></i> Send Recovery Email
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="ph ph-envelope-open" style="font-size: 36px; color: var(--text-muted); margin-bottom:10px; display:block;"></i>
+                No abandoned checkouts found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab 6: Low Stock Alerts -->
+    <div class="tab-content" id="tab-lowstock">
+        <div class="logistics-table-wrap">
+            {% if low_stock_products %}
+            <table class="logistics-table">
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Details</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Current Stock</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prod in low_stock_products %}
+                    <tr>
+                        <td class="order-id-label">#PRD-{{ prod.id|stringformat:"04d" }}</td>
+                        <td class="customer-cell">
+                            <h4>{{ prod.name }}</h4>
+                            <span>SKU: {{ prod.slug }}</span>
+                        </td>
+                        <td>{{ prod.category.name }}</td>
+                        <td style="font-weight: 600;">₹{{ prod.current_price }}</td>
+                        <td style="color: #dc2626; font-weight: 700;">
+                            {{ prod.stock }} units
+                        </td>
+                        <td>
+                            {% if prod.stock == 0 %}
+                                <span class="status-badge" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">Out of Stock</span>
+                            {% else %}
+                                <span class="status-badge" style="background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a;">Low Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'store:logistics_product_edit' prod.id %}" class="btn-logistics btn-logistics-secondary btn-small">
+                                Restock Saree
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+                <i class="ph ph-check-square" style="font-size: 36px; color: var(--text-muted); margin-bottom:10px; display:block;"></i>
+                All sarees have sufficient stock.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tab 7: Analytics -->
+    <div class="tab-content" id="tab-analytics">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-top: 10px;">
+            <div class="analytics-card" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 24px; box-shadow: var(--shadow-sm);">
+                <h4 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary);">
+                    Monthly Revenue Trend
+                </h4>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="monthlyRevenueChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="analytics-card" style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 24px; box-shadow: var(--shadow-sm);">
+                <h4 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-primary);">
+                    Sales by Saree Category
+                </h4>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="categorySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Tab switching logic
+        const tabs = document.querySelectorAll('.tab-btn');
+        const contents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.getAttribute('data-tab');
+
+                // Remove active classes
+                tabs.forEach(t => t.classList.remove('active'));
+                contents.forEach(c => c.classList.remove('active'));
+
+                // Add active classes
+                tab.classList.add('active');
+                const targetEl = document.getElementById(target);
+                if (targetEl) {
+                    targetEl.classList.add('active');
+                }
+            });
+        });
+
+        // Trigger toast on filter searches if any
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('search')) {
+            showToast('Search query applied.');
+        }
+
+        // Abandoned checkouts recovery trigger
+        const recoveryBtns = document.querySelectorAll('.send-recovery-btn');
+        recoveryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const orderId = btn.getAttribute('data-order-id');
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="ph-bold ph-spinner spinner" style="animation: spin 1s linear infinite; display: inline-block;"></i> Sending...';
+
+                fetch('/ajax/logistics/send-recovery/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ order_id: orderId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(data.message, 'success');
+                        btn.innerHTML = '<i class="ph ph-check-circle" style="color:#ffffff;"></i> Sent ✔';
+                        btn.style.backgroundColor = 'var(--accent-success)';
+                        btn.style.color = '#ffffff';
+                        btn.style.borderColor = 'var(--accent-success)';
+                    } else {
+                        showToast(data.message || 'Failed to send recovery email.', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Network error occurred.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                });
+            });
+        });
+
+        // Chart.js Rendering
+        const categoryLabels = {{ category_labels|safe|default:"[]" }};
+        const categoryRevenue = {{ category_revenue|safe|default:"[]" }};
+        const monthlyLabels = {{ monthly_labels|safe|default:"[]" }};
+        const monthlyRevenue = {{ monthly_revenue|safe|default:"[]" }};
+
+        // Initialize Monthly Revenue Chart
+        const ctxMonthly = document.getElementById('monthlyRevenueChart');
+        if (ctxMonthly && monthlyLabels.length > 0) {
+            new Chart(ctxMonthly.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: monthlyLabels,
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: monthlyRevenue,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#4f46e5',
+                        pointBorderColor: '#ffffff',
+                        pointHoverBackgroundColor: '#ffffff',
+                        pointHoverBorderColor: '#4f46e5',
+                        pointHoverRadius: 6,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                font: {
+                                    family: 'Inter',
+                                    size: 11
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#64748b',
+                                font: {
+                                    family: 'Inter',
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { family: 'Inter', size: 12 },
+                            bodyFont: { family: 'Inter', size: 12 },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Revenue: ₹' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize Category Sales Chart
+        const ctxCategory = document.getElementById('categorySalesChart');
+        if (ctxCategory && categoryLabels.length > 0) {
+            new Chart(ctxCategory.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryRevenue,
+                        backgroundColor: [
+                            '#4f46e5',
+                            '#10b981',
+                            '#f59e0b',
+                            '#3b82f6',
+                            '#ec4899',
+                            '#8b5cf6',
+                            '#06b6d4'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 11
+                                },
+                                color: '#475569',
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            bodyFont: { family: 'Inter', size: 12 },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ₹' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // CSRF helper
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+</style>
+{% endblock %}

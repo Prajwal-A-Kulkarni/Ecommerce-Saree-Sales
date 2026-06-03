@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #INV-ZG-{{ order.id|stringformat:"05d" }}</title>
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            color: #1e293b;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 40px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .brand-section h1 {
+            font-size: 28px;
+            margin: 0 0 5px 0;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #0f172a;
+        }
+
+        .brand-section p {
+            color: #64748b;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        .invoice-meta {
+            text-align: right;
+        }
+
+        .invoice-meta h2 {
+            font-size: 20px;
+            margin: 0 0 10px 0;
+            color: #4f46e5;
+            font-weight: 700;
+        }
+
+        .invoice-meta p {
+            margin: 4px 0;
+            color: #475569;
+        }
+
+        .address-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .address-box h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin: 0 0 12px 0;
+        }
+
+        .address-box p {
+            margin: 4px 0;
+            color: #0f172a;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .invoice-table th, .invoice-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .invoice-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        .invoice-table td {
+            color: #0f172a;
+        }
+
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 40px;
+        }
+
+        .totals-box {
+            width: 300px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .totals-row:last-child {
+            border-bottom: none;
+        }
+
+        .totals-row.grand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4f46e5;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .invoice-footer {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        /* Top control bar */
+        .control-bar {
+            background-color: #f1f5f9;
+            border-bottom: 1px solid #cbd5e1;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-radius: 6px;
+        }
+
+        .btn-print {
+            background-color: #4f46e5;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-print:hover {
+            background-color: #4338ca;
+        }
+
+        /* Printing Specific Styles */
+        @media print {
+            body {
+                padding: 0;
+                font-size: 12px;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .invoice-container {
+                max-width: 100%;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Control bar hidden during print -->
+    <div class="control-bar no-print">
+        <div style="font-weight: 600; color: #334155;">Original Invoice PDF Generator</div>
+        <button onclick="window.print()" class="btn-print">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" style="vertical-align: middle;"><path d="M224,96H192V48a16,16,0,0,0-16-16H80A16,16,0,0,0,64,48V96H32a16,16,0,0,0-16,16v80a16,16,0,0,0,16,16H64v32a16,16,0,0,0,16,16h96a16,16,0,0,0,16-16V208h32a16,16,0,0,0,16-16V112A16,16,0,0,0,224,96ZM80,48h96V96H80Zm96,176H80V176h96Zm48-32H192V160a16,16,0,0,0-16-16H80a16,16,0,0,0-16,16v32H32V112H224v80Zm-36-56a12,12,0,1,1,12-12A12,12,0,0,1,188,136Z"></path></svg>
+            Print Invoice
+        </button>
+    </div>
+
+    <div class="invoice-container">
+        <!-- Header -->
+        <header class="invoice-header">
+            <div class="brand-section">
+                <h1>ZARI & GRACE</h1>
+                <p>Premium Silk & Heritage Saree Boutique</p>
+                <p style="margin-top: 5px;">support@zariegrace.com | www.zariegrace.com</p>
+            </div>
+            <div class="invoice-meta">
+                <h2>INVOICE</h2>
+                <p><strong>Invoice No:</strong> ZG-INV-{{ order.id|stringformat:"05d" }}</p>
+                <p><strong>Order Ref:</strong> #ZG-{{ order.id|stringformat:"05d" }}</p>
+                <p><strong>Date:</strong> {{ order.created_at|date:"d M Y" }}</p>
+                <p><strong>Payment Mode:</strong> {{ order.payment_method }}</p>
+            </div>
+        </header>
+
+        <!-- Addresses -->
+        <section class="address-section">
+            <div class="address-box">
+                <h3>Billed To</h3>
+                <p>{{ order.first_name }} {{ order.last_name }}</p>
+                <p>{{ order.email }}</p>
+                <p>{{ order.phone }}</p>
+            </div>
+            
+            <div class="address-box">
+                <h3>Shipped To</h3>
+                <p>{{ order.first_name }} {{ order.last_name }}</p>
+                <p>{{ order.address_line1 }}</p>
+                {% if order.address_line2 %}
+                <p>{{ order.address_line2 }}</p>
+                {% endif %}
+                <p>{{ order.city }}, {{ order.state }} - {{ order.postal_code }}</p>
+                {% if order.shipping_id %}
+                <p style="margin-top: 10px; font-size:12px; color: #475569;">
+                    <strong>Courier:</strong> {{ order.shipping_courier }} | <strong>Waybill:</strong> {{ order.shipping_id }}
+                </p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Items Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Saree Item Description</th>
+                    <th style="text-align: center; width: 15%;">Qty</th>
+                    <th style="text-align: right; width: 18%;">Unit Cost</th>
+                    <th style="text-align: right; width: 17%;">Net Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td style="font-weight: 500;">{{ item.product.name }}</td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">₹{{ item.price }}</td>
+                    <td style="text-align: right; font-weight: 500;">₹{{ item.total_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totals -->
+        <section class="totals-section">
+            <div class="totals-box">
+                <div class="totals-row">
+                    <span style="color: #64748b;">Subtotal</span>
+                    <span style="font-weight: 500;">₹{{ order.total_amount }}</span>
+                </div>
+                <div class="totals-row">
+                    <span style="color: #64748b;">Shipping Charges</span>
+                    <span style="color: #10b981; font-weight: 600;">FREE</span>
+                </div>
+                <div class="totals-row grand">
+                    <span>Invoice Total</span>
+                    <span>₹{{ order.total_amount }}</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Delivery Instructions if any -->
+        {% if order.delivery_instructions %}
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 4px; margin-bottom: 40px;">
+            <strong style="font-size: 11px; text-transform: uppercase; color: #475569; display: block; margin-bottom: 5px;">Courier Delivery Instructions</strong>
+            <span style="color: #0f172a; font-style: italic;">"{{ order.delivery_instructions }}"</span>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <footer class="invoice-footer">
+            <p>Thank you for choosing Zari & Grace. We hope you cherish this handcrafted piece of heritage.</p>
+            <p style="margin-top: 5px; font-size:10px; color:#94a3b8;">This is a computer-generated invoice document. No physical signature required.</p>
+        </footer>
+    </div>
+
+</body>
+</html>

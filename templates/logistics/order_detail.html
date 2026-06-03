@@ -1,0 +1,309 @@
+{% extends 'logistics/base_logistics.html' %}
+{% load static %}
+
+{% block title %}Manage Order #ZG-{{ order.id|stringformat:"05d" }} | Zari & Grace Logistics{% endblock %}
+
+{% block active_dashboard %}active{% endblock %}
+{% block page_header %}Shipment Dispatch #ZG-{{ order.id|stringformat:"05d" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-detail-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 30px;
+    }
+
+    @media (max-width: 992px) {
+        .order-detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .detail-card-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Customer details list */
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed var(--border-color);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-weight: 600;
+        text-align: right;
+    }
+
+    /* Delivery instructions alert box */
+    .instructions-box {
+        background-color: #fffbeb;
+        border: 1px solid #fef3c7;
+        border-left: 4px solid var(--accent-warning);
+        border-radius: var(--border-radius-sm);
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .instructions-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #b45309;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .instructions-text {
+        font-size: 14px;
+        color: #78350f;
+        line-height: 1.5;
+    }
+
+    /* Items table */
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    .items-table th, .items-table td {
+        padding: 12px 16px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .items-table th {
+        font-weight: 600;
+        color: var(--text-secondary);
+        background-color: #fafbfc;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+
+    .totals-area {
+        margin-top: 20px;
+        padding: 16px;
+        background-color: #fafbfc;
+        border-radius: var(--border-radius-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .totals-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+    }
+
+    .totals-row.grand {
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--accent-primary);
+        border-top: 1px solid var(--border-color);
+        padding-top: 10px;
+        margin-top: 5px;
+    }
+
+    /* Track Link Button */
+    .track-link-card {
+        text-align: center;
+        background-color: #f0fdf4;
+        border: 1px dashed var(--accent-success);
+        border-radius: var(--border-radius-md);
+        padding: 16px;
+        margin-top: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+    <a href="{% url 'store:logistics_dashboard' %}" class="btn-logistics btn-logistics-secondary btn-small" style="font-weight: 500;">
+        <i class="ph-bold ph-arrow-left"></i> Back to Dashboard
+    </a>
+    <a href="{% url 'store:logistics_order_invoice' order.id %}" target="_blank" class="btn-logistics btn-logistics-primary btn-small" style="background-color: var(--accent-success); color: #ffffff; border-color: var(--accent-success);">
+        <i class="ph-bold ph-printer"></i> Generate & Print Invoice
+    </a>
+</div>
+
+<div class="order-detail-grid">
+    <!-- Left Column: Details & Items -->
+    <div class="order-left-column">
+        
+        <!-- Delivery Instructions Panel -->
+        <div class="instructions-box">
+            <div class="instructions-title"><i class="ph-fill ph-warning-circle"></i> Special Delivery Instructions</div>
+            <div class="instructions-text">
+                {% if order.delivery_instructions %}
+                    "{{ order.delivery_instructions }}"
+                {% else %}
+                    No specific delivery instructions were provided for this shipment.
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Customer & Shipment Info -->
+        <div class="logistics-card">
+            <h3 class="detail-card-title"><i class="ph-bold ph-user-circle"></i> Recipient & Address Details</h3>
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label">Customer Name</span>
+                    <span class="info-value">{{ order.first_name }} {{ order.last_name }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Phone Number</span>
+                    <span class="info-value">{{ order.phone }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email Address</span>
+                    <span class="info-value">{{ order.email }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Address Line 1</span>
+                    <span class="info-value">{{ order.address_line1 }}</span>
+                </div>
+                {% if order.address_line2 %}
+                <div class="info-item">
+                    <span class="info-label">Address Line 2</span>
+                    <span class="info-value">{{ order.address_line2 }}</span>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <span class="info-label">City & State</span>
+                    <span class="info-value">{{ order.city }}, {{ order.state }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">PIN Code</span>
+                    <span class="info-value">{{ order.postal_code }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="logistics-card">
+            <h3 class="detail-card-title"><i class="ph-bold ph-shopping-bag"></i> Order Package Contents</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Product Saree</th>
+                        <th style="text-align: center;">Qty</th>
+                        <th style="text-align: right;">Unit Price</th>
+                        <th style="text-align: right;">Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td style="text-align: center;">{{ item.quantity }}</td>
+                        <td style="text-align: right;">₹{{ item.price }}</td>
+                        <td style="text-align: right; font-weight: 500;">₹{{ item.total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="totals-area">
+                <div class="totals-row">
+                    <span style="color: var(--text-secondary);">Subtotal</span>
+                    <span>₹{{ order.total_amount }}</span>
+                </div>
+                <div class="totals-row">
+                    <span style="color: var(--text-secondary);">Shipping Charges</span>
+                    <span style="color: var(--accent-success); font-weight: 600; text-transform: uppercase; font-size: 12px;">Free</span>
+                </div>
+                <div class="totals-row grand">
+                    <span>Grand Total</span>
+                    <span>₹{{ order.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Control Center Panel -->
+    <div class="order-right-column">
+        <form method="POST" class="logistics-card" style="position: sticky; top: 90px;">
+            {% csrf_token %}
+            <h3 class="detail-card-title"><i class="ph-bold ph-gear"></i> Logistics Controls</h3>
+            
+            <div class="form-group">
+                <label>Current Status</label>
+                <div style="margin-bottom: 12px;">
+                    <span class="status-badge bg-{{ order.status|cut:' ' }}">{{ order.status }}</span>
+                </div>
+                <select name="status" class="form-input" style="font-weight: 600;">
+                    {% for choice in status_choices %}
+                    <option value="{{ choice }}" {% if order.status == choice %}selected{% endif %}>{{ choice }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="shipping_courier">Courier Partner</label>
+                <input type="text" name="shipping_courier" id="shipping_courier" class="form-input" placeholder="e.g. Delhivery, Blue Dart, FedEx" value="{{ order.shipping_courier|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="shipping_id">Tracking / Waybill ID</label>
+                <input type="text" name="shipping_id" id="shipping_id" class="form-input" placeholder="e.g. ZG-TRK-987654" value="{{ order.shipping_id|default:'' }}">
+            </div>
+
+            <button type="submit" class="btn-logistics btn-logistics-primary btn-block" style="margin-top: 25px; width: 100%;">
+                <i class="ph-bold ph-floppy-disk"></i> Save Dispatch Details
+            </button>
+
+            <!-- Customer Tracking View Shortcut -->
+            <div class="track-link-card">
+                <p style="font-size: 12px; color: var(--accent-success); font-weight: 600; margin-bottom: 8px;">Customer Portal Sync Active</p>
+                <a href="{% url 'store:order_track' order.id %}" target="_blank" class="btn-logistics btn-logistics-secondary btn-small" style="font-size:11px; padding: 6px 12px; background:#ffffff; display: inline-flex;">
+                    <i class="ph ph-arrow-square-out" style="vertical-align: middle;"></i> View Tracking Page
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Trigger toast on successful POST
+        if (window.performance && window.performance.navigation.type === 1) {
+            // Refreshed page
+        } else {
+            const referrer = document.referrer;
+            if (referrer.includes(window.location.pathname) && window.showToast) {
+                showToast('Logistics dispatch updated successfully!');
+            }
+        }
+    });
+</script>
+{% endblock %}

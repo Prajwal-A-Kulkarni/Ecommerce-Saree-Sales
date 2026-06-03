@@ -1,0 +1,599 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Track Order #ZG-{{ order.id|stringformat:"05d" }} | Zari & Grace{% endblock %}
+
+{% block extra_css %}
+<style>
+    .track-container {
+        max-width: 1000px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+
+    .track-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .track-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.8rem;
+        letter-spacing: 1px;
+    }
+
+    .track-meta {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(201, 169, 110, 0.1);
+        border: 1px solid var(--accent-gold);
+        color: var(--accent-gold);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background-color: var(--accent-gold);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--accent-gold);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.9); opacity: 0.5; }
+        50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 15px var(--accent-gold); }
+        100% { transform: scale(0.9); opacity: 0.5; }
+    }
+
+    /* Timeline visual progress */
+    .timeline-card {
+        padding: 50px 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .timeline-progress-container {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        padding: 0;
+    }
+
+    .timeline-line {
+        position: absolute;
+        top: 27px; /* Center height of the 54px icon circles */
+        left: 60px; /* Offset to align exactly with the center of the first 120px node */
+        right: 60px; /* Offset to align exactly with the center of the last 120px node */
+        height: 4px;
+        background: var(--glass-border);
+        z-index: 1;
+        border-radius: 2px;
+    }
+
+    .timeline-line-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent-gold) 0%, var(--accent-gold-hover) 100%);
+        box-shadow: 0 0 12px var(--accent-gold-glow);
+        z-index: 2;
+        width: 0%;
+        transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .timeline-node {
+        position: relative;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 120px; /* Wider container to allow text to fit without stretching page */
+    }
+
+    .node-icon-circle {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: 2px solid var(--glass-border);
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .node-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    .node-title {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-secondary);
+        transition: color 0.5s ease;
+        white-space: nowrap;
+        margin-bottom: 5px;
+    }
+
+    .node-desc {
+        font-size: 11px;
+        color: var(--text-muted);
+        line-height: 1.4;
+        max-width: 120px;
+    }
+
+    /* Node States */
+    .timeline-node.completed .node-icon-circle {
+        background: var(--accent-gold);
+        border-color: var(--accent-gold);
+        color: #000;
+        box-shadow: var(--gold-shadow);
+    }
+
+    .timeline-node.completed .node-title {
+        color: var(--accent-gold);
+    }
+
+    .timeline-node.active .node-icon-circle {
+        background: var(--bg-primary);
+        border-color: var(--accent-gold-hover);
+        color: var(--accent-gold-hover);
+        box-shadow: 0 0 20px var(--accent-gold-glow);
+        transform: scale(1.1);
+    }
+
+    .timeline-node.active .node-title {
+        color: var(--text-primary);
+        font-weight: 700;
+    }
+
+    /* Grid info display */
+    .track-details-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .track-details-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .timeline-progress-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 40px;
+            padding: 30px 0; /* Clear left padding, keep vertical padding */
+        }
+        
+        .timeline-line {
+            top: 57px; /* Align with center of the first circle: 30px container top padding + 27px circle radius */
+            bottom: 57px; /* Align with center of the last circle: 30px container bottom padding + 27px circle radius */
+            left: 27px; /* Align horizontally with center of circle at left: 27px circle radius */
+            width: 4px;
+            height: auto;
+            right: auto;
+        }
+
+        .timeline-line-fill {
+            width: 100% !important;
+            height: 0%;
+            transition: height 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .timeline-node {
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            gap: 20px;
+        }
+
+        .node-text {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            margin-top: 0;
+        }
+        
+        .node-title {
+            margin-bottom: 3px;
+        }
+
+        .node-desc {
+            max-width: none;
+        }
+    }
+
+    .info-card h3 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 20px;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--glass-border);
+        padding-bottom: 10px;
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .item-row:last-child {
+        border-bottom: none;
+    }
+
+    .item-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .item-thumb {
+        width: 50px;
+        height: 65px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid var(--glass-border);
+    }
+
+    .item-name {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .item-qty {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .item-price {
+        font-weight: 600;
+        color: var(--accent-gold);
+        font-size: 14px;
+    }
+
+    .address-details p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+
+    .price-summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        font-size: 14px;
+    }
+
+    .price-summary-row.total {
+        border-top: 1px solid var(--glass-border);
+        padding-top: 15px;
+        margin-top: 10px;
+        font-weight: 600;
+        font-size: 16px;
+        color: var(--accent-gold);
+    }
+
+    .refresh-btn {
+        background: none;
+        border: 1px solid var(--glass-border);
+        padding: 10px 20px;
+        border-radius: 4px;
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .refresh-btn:hover {
+        background: var(--glass-bg-hover);
+        border-color: var(--text-primary);
+    }
+
+    .refresh-btn i.spinning {
+        animation: spin 1s linear infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="track-container">
+    <div class="track-header">
+        <div>
+            <h1 class="track-title">Order Status</h1>
+            <p class="track-meta">Order ID: #ZG-{{ order.id|stringformat:"05d" }} &bull; Placed: {{ order.created_at|date:"d M Y, H:i" }}</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <button class="refresh-btn" id="refreshStatusBtn">
+                <i class="ph-bold ph-arrows-clockwise" id="refreshIcon"></i>
+                Refresh Status
+            </button>
+            <div class="live-indicator">
+                <span class="live-dot"></span> Live Tracking
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Status Timeline -->
+    <div class="timeline-card glass-card">
+        <div class="timeline-progress-container">
+            <div class="timeline-line">
+                <div class="timeline-line-fill" id="progressLine"></div>
+            </div>
+
+            <!-- Placed -->
+            <div class="timeline-node" id="node-1">
+                <div class="node-icon-circle">
+                    <i class="ph-bold ph-receipt"></i>
+                </div>
+                <div class="node-text">
+                    <div class="node-title">Placed</div>
+                    <div class="node-desc">We have received your order</div>
+                </div>
+            </div>
+
+            <!-- Packed -->
+            <div class="timeline-node" id="node-2">
+                <div class="node-icon-circle">
+                    <i class="ph-bold ph-package"></i>
+                </div>
+                <div class="node-text">
+                    <div class="node-title">Packed</div>
+                    <div class="node-desc">Saree is packed & ready</div>
+                </div>
+            </div>
+
+            <!-- Shipped -->
+            <div class="timeline-node" id="node-3">
+                <div class="node-icon-circle">
+                    <i class="ph-bold ph-truck"></i>
+                </div>
+                <div class="node-text">
+                    <div class="node-title">Shipped</div>
+                    <div class="node-desc">Handed to delivery partner</div>
+                </div>
+            </div>
+
+            <!-- In Route -->
+            <div class="timeline-node" id="node-4">
+                <div class="node-icon-circle">
+                    <i class="ph-bold ph-map-pin-line"></i>
+                </div>
+                <div class="node-text">
+                    <div class="node-title">In Route</div>
+                    <div class="node-desc">Saree is out for delivery</div>
+                </div>
+            </div>
+
+            <!-- Delivered -->
+            <div class="timeline-node" id="node-5">
+                <div class="node-icon-circle">
+                    <i class="ph-bold ph-sparkle"></i>
+                </div>
+                <div class="node-text">
+                    <div class="node-title">Delivered</div>
+                    <div class="node-desc">Successfully delivered</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-top: 20px;" id="lastUpdatedText">
+            Last status check: {{ order.updated_at|date:"d M Y, H:i" }}
+        </div>
+    </div>
+
+    <!-- Order Items & Shipping Address -->
+    <div class="track-details-grid">
+        <!-- Items details -->
+        <div class="info-card glass-card">
+            <h3>Items in this Order</h3>
+            <div class="items-list">
+                {% for item in order.items.all %}
+                <div class="item-row">
+                    <div class="item-info">
+                        {% if item.product.images.first %}
+                        <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}" class="item-thumb">
+                        {% else %}
+                        <div class="item-thumb" style="background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;"><i class="ph ph-image"></i></div>
+                        {% endif %}
+                        <div>
+                            <span class="item-name">{{ item.product.name }}</span>
+                            <div class="item-qty">Qty: {{ item.quantity }}</div>
+                        </div>
+                    </div>
+                    <span class="item-price">₹{{ item.price }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <div class="price-summary-row">
+                    <span style="color: var(--text-secondary);">Subtotal</span>
+                    <span>₹{{ order.total_amount }}</span>
+                </div>
+                <div class="price-summary-row">
+                    <span style="color: var(--text-secondary);">Shipping</span>
+                    <span style="color: var(--accent-gold); font-size: 12px; font-weight:600; text-transform: uppercase;">Free</span>
+                </div>
+                <div class="price-summary-row total">
+                    <span>Total Amount Paid</span>
+                    <span>₹{{ order.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping and billing -->
+        <div class="info-card glass-card">
+            <h3>Delivery Details</h3>
+            <div class="address-details" style="margin-bottom: 30px;">
+                <p style="font-weight: 600; color: var(--text-primary);">{{ order.first_name }} {{ order.last_name }}</p>
+                <p>{{ order.address_line1 }}</p>
+                {% if order.address_line2 %}
+                <p>{{ order.address_line2 }}</p>
+                {% endif %}
+                <p>{{ order.city }}, {{ order.state }} - {{ order.postal_code }}</p>
+                <p style="margin-top: 15px;"><i class="ph ph-phone" style="vertical-align: middle; margin-right: 5px;"></i> {{ order.phone }}</p>
+                <p><i class="ph ph-envelope" style="vertical-align: middle; margin-right: 5px;"></i> {{ order.email }}</p>
+            </div>
+
+            <h3>Payment Details</h3>
+            <div class="address-details">
+                <p><strong style="color: var(--text-primary);">Method:</strong> {{ order.payment_method }}</p>
+                {% if order.transaction_id %}
+                <p><strong style="color: var(--text-primary);">Transaction ID:</strong> {{ order.transaction_id }}</p>
+                {% endif %}
+                <p><strong style="color: var(--text-primary);">Status:</strong> <span style="text-transform: uppercase; font-size: 12px; font-weight: 600; color: var(--accent-gold);">{{ order.status }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentStage = {{ current_stage }};
+        const statusStr = "{{ order.status }}";
+        
+        updateTimeline(currentStage, statusStr);
+
+        const refreshBtn = document.getElementById('refreshStatusBtn');
+        const refreshIcon = document.getElementById('refreshIcon');
+
+        refreshBtn.addEventListener('click', function() {
+            // Spin icon animation
+            refreshIcon.classList.add('spinning');
+            refreshBtn.disabled = true;
+
+            // Perform fetch request
+            fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                setTimeout(() => {
+                    refreshIcon.classList.remove('spinning');
+                    refreshBtn.disabled = false;
+                    
+                    // Update layout
+                    updateTimeline(data.current_stage, data.status);
+                    document.getElementById('lastUpdatedText').textContent = 'Last status check: ' + data.updated_at;
+                    
+                    // Trigger custom toast if exists
+                    if (window.showToast) {
+                        window.showToast('Order status refreshed live.');
+                    }
+                }, 800);
+            })
+            .catch(error => {
+                console.error('Error fetching order status:', error);
+                refreshIcon.classList.remove('spinning');
+                refreshBtn.disabled = false;
+            });
+        });
+
+        function updateTimeline(stage, statusVal) {
+            // Reset all nodes
+            for (let i = 1; i <= 5; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (node) {
+                    node.classList.remove('completed', 'active');
+                }
+            }
+
+            const progressLine = document.getElementById('progressLine');
+            const isMobile = window.innerWidth <= 768;
+
+            if (statusVal === 'Failed') {
+                // Handle failed status gracefully
+                if (progressLine) {
+                    if (isMobile) progressLine.style.height = '0%';
+                    else progressLine.style.width = '0%';
+                }
+                return;
+            }
+
+            // Mark nodes as completed or active
+            for (let i = 1; i <= 5; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (!node) continue;
+
+                if (i < stage) {
+                    node.classList.add('completed');
+                } else if (i === stage) {
+                    node.classList.add('active');
+                }
+            }
+
+            // Update progress line length (0% to 100% full scale)
+            let percentage = 0;
+            if (stage > 1) {
+                percentage = ((stage - 1) / 4) * 100;
+            }
+            
+            if (progressLine) {
+                // Clear any previous values to prevent cross-leakage when resizing
+                progressLine.style.width = '';
+                progressLine.style.height = '';
+                
+                if (isMobile) {
+                    progressLine.style.width = '100%';
+                    progressLine.style.height = `${percentage}%`;
+                } else {
+                    progressLine.style.height = '100%';
+                    progressLine.style.width = `${percentage}%`;
+                }
+            }
+        }
+        
+        // Handle window resize for mobile vs desktop progress line
+        window.addEventListener('resize', function() {
+            // Re-trigger layout
+            fetch(window.location.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(d => updateTimeline(d.current_stage, d.status));
+        });
+    });
+</script>
+{% endblock %}

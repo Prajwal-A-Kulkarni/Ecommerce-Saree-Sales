@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Order Management | Zari & Grace{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 60px auto;
+        padding: 0 40px;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .admin-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.8rem;
+        letter-spacing: 1px;
+    }
+
+    /* Filters and search panel */
+    .controls-panel {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .filter-tab {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        color: var(--text-secondary);
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .filter-tab:hover {
+        background: var(--glass-bg-hover);
+        color: var(--text-primary);
+    }
+
+    .filter-tab.active {
+        background: var(--accent-gold);
+        border-color: var(--accent-gold);
+        color: #000;
+        box-shadow: var(--gold-shadow);
+    }
+
+    .search-box-wrap {
+        position: relative;
+        min-width: 300px;
+    }
+
+    .search-box-wrap i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+    }
+
+    /* Order table */
+    .orders-table-wrap {
+        overflow-x: auto;
+    }
+
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .orders-table th, .orders-table td {
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--glass-border);
+        font-size: 14px;
+    }
+
+    .orders-table th {
+        font-weight: 600;
+        color: var(--accent-gold);
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 1px;
+        border-bottom: 2px solid var(--glass-border);
+    }
+
+    .orders-table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .orders-table tbody tr:hover {
+        background-color: var(--glass-bg-hover);
+    }
+
+    .order-ref {
+        font-family: monospace;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-primary);
+    }
+
+    .customer-info h4 {
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 3px;
+    }
+
+    .customer-info span {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    /* Custom elegant select dropdown for status change */
+    .status-select-wrap {
+        position: relative;
+        display: inline-block;
+        width: 150px;
+    }
+
+    .status-select {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        padding: 8px 30px 8px 12px;
+        border-radius: 4px;
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+    .status-select:focus {
+        border-color: var(--accent-gold);
+        box-shadow: 0 0 10px var(--accent-gold-glow);
+    }
+
+    .status-select-wrap i {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    /* Dropdown Options coloring */
+    .status-select option {
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        padding: 8px;
+    }
+
+    /* Table status styles to show next to select if necessary, or just color the select border based on status */
+    .select-Paid { border-color: var(--accent-gold); color: var(--accent-gold); }
+    .select-Packed { border-color: #5d9cec; color: #5d9cec; }
+    .select-Shipped { border-color: #ac92ec; color: #ac92ec; }
+    .select-In-Route { border-color: #fc6e51; color: #fc6e51; }
+    .select-Delivered { border-color: #a0d468; color: #a0d468; }
+    .select-Failed { border-color: #ed5565; color: #ed5565; }
+    .select-Pending { border-color: #ffce54; color: #ffce54; }
+
+    /* Action buttons */
+    .action-links {
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Spinner style inside table rows */
+    .spinner-cell {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.1);
+        border-top-color: var(--accent-gold);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+        margin-left: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .spinner-cell.active {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <div>
+            <h1 class="admin-title">Order Dashboard</h1>
+            <p style="color: var(--text-secondary); font-size: 14px;">Manage customer orders and update tracking status live.</p>
+        </div>
+    </div>
+
+    <!-- Controls Panel (Filters + Search) -->
+    <div class="controls-panel glass-card">
+        <div class="filter-btn-group">
+            <a href="?status=All{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'All' %}active{% endif %}">All</a>
+            <a href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'Pending' %}active{% endif %}">Pending</a>
+            <a href="?status=Paid{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'Paid' %}active{% endif %}">Paid</a>
+            <a href="?status=Packed{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'Packed' %}active{% endif %}">Packed</a>
+            <a href="?status=Shipped{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'Shipped' %}active{% endif %}">Shipped</a>
+            <a href="?status=In Route{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'In Route' %}active{% endif %}">In Route</a>
+            <a href="?status=Delivered{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'Delivered' %}active{% endif %}">Delivered</a>
+            <a href="?status=Failed{% if search_query %}&search={{ search_query }}{% endif %}" class="filter-tab {% if selected_status == 'Failed' %}active{% endif %}">Failed</a>
+        </div>
+
+        <form method="GET" class="search-box-wrap">
+            <input type="hidden" name="status" value="{{ selected_status }}">
+            <input type="text" name="search" placeholder="Search ID, name, email..." value="{{ search_query }}" class="glass-input" style="padding-right: 40px;">
+            <button type="submit" style="background: none; border: none; cursor: pointer;">
+                <i class="ph-bold ph-magnifying-glass"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="orders-table-wrap glass-card">
+        {% if orders %}
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Order Ref</th>
+                    <th>Customer</th>
+                    <th>Date Placed</th>
+                    <th>Total Amount</th>
+                    <th>Status Control</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr id="order-row-{{ order.id }}">
+                    <td class="order-ref">#ZG-{{ order.id|stringformat:"05d" }}</td>
+                    <td class="customer-info">
+                        <h4>{{ order.first_name }} {{ order.last_name }}</h4>
+                        <span>{{ order.email }} &bull; {{ order.phone }}</span>
+                    </td>
+                    <td>{{ order.created_at|date:"d M Y, H:i" }}</td>
+                    <td style="font-weight: 600; color: var(--accent-gold);">₹{{ order.total_amount }}</td>
+                    <td>
+                        <div class="status-select-wrap">
+                            <select class="status-select select-{{ order.status|cut:' ' }}" data-order-id="{{ order.id }}">
+                                {% for choice in status_choices %}
+                                <option value="{{ choice }}" {% if order.status == choice %}selected{% endif %}>{{ choice }}</option>
+                                {% endfor %}
+                            </select>
+                            <i class="ph-bold ph-caret-down"></i>
+                        </div>
+                        <span class="spinner-cell" id="spinner-{{ order.id }}"></span>
+                    </td>
+                    <td class="action-links">
+                        <a href="{% url 'store:order_track' order.id %}" class="btn btn-secondary btn-small">
+                            <i class="ph ph-eye" style="margin-right: 5px; font-size:14px; vertical-align:middle;"></i> Track Page
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 60px 0;">
+            <i class="ph-bold ph-receipt-x" style="font-size: 48px; color: var(--text-muted); margin-bottom: 20px; display:block;"></i>
+            <p style="color: var(--text-secondary);">No orders found matching the filter criteria.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('.status-select');
+
+        selects.forEach(select => {
+            select.addEventListener('change', function() {
+                const orderId = this.getAttribute('data-order-id');
+                const newStatus = this.value;
+                const spinner = document.getElementById(`spinner-${orderId}`);
+
+                // Update class color dynamically on change
+                // First remove all status classes
+                this.classList.remove('select-Pending', 'select-Paid', 'select-Packed', 'select-Shipped', 'select-In-Route', 'select-Delivered', 'select-Failed');
+                const classSuffix = newStatus.replace(' ', '-');
+                this.classList.add(`select-${classSuffix}`);
+
+                // Show spinner
+                if (spinner) spinner.classList.add('active');
+                this.disabled = true;
+
+                // POST Status via AJAX
+                fetch('{% url "store:ajax_update_order_status" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        status: newStatus
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    setTimeout(() => {
+                        if (spinner) spinner.classList.remove('active');
+                        this.disabled = false;
+                        
+                        if (data.success) {
+                            if (window.showToast) {
+                                window.showToast(data.message);
+                            } else {
+                                alert(data.message);
+                            }
+                        } else {
+                            alert('Failed to update status: ' + data.message);
+                        }
+                    }, 500);
+                })
+                .catch(error => {
+                    console.error('Error updating status:', error);
+                    if (spinner) spinner.classList.remove('active');
+                    this.disabled = false;
+                    alert('Error updating status: network connection issue.');
+                });
+            });
+        });
+
+        // Helper to get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}
