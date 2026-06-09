@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/theme.dart';
 import '../widgets/glass_container.dart';
+import '../widgets/gradient_background.dart';
 import 'main_navigation.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
@@ -29,17 +30,21 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('ORDER STATUS'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: BoutiqueTheme.accentGold),
-            onPressed: _refreshStatus,
-          )
-        ],
-      ),
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('ORDER STATUS'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: BoutiqueTheme.accentGold),
+              onPressed: _refreshStatus,
+            )
+          ],
+        ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _trackFuture,
         builder: (context, snapshot) {
@@ -182,7 +187,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(6),
                                 child: Image.network(
-                                  item['image_url'],
+                                  ApiService.resolveImageUrl(item['image_url']),
                                   width: 50,
                                   height: 50,
                                   fit: BoxFit.cover,
@@ -231,8 +236,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildStageItem(int stageNumber, String title, String subtitle, bool isCompleted) {
     return Row(

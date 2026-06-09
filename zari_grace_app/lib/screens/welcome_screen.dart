@@ -137,7 +137,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
           Container(
-            color: BoutiqueTheme.primaryBg.withOpacity(0.85),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  const Color(0xFF08040C).withOpacity(0.92),
+                  const Color(0xFF180A2B).withOpacity(0.85),
+                  const Color(0xFF090E22).withOpacity(0.92),
+                ],
+              ),
+            ),
           ),
           
           // Settings button

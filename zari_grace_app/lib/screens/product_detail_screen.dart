@@ -4,6 +4,7 @@ import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/theme.dart';
 import '../widgets/glass_container.dart';
+import '../widgets/gradient_background.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String slug;
@@ -36,14 +37,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SAREE DETAIL'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: BoutiqueTheme.accentGold),
-          onPressed: () => Navigator.pop(context),
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('SAREE DETAIL'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: BoutiqueTheme.accentGold),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _detailFuture,
         builder: (context, snapshot) {
@@ -84,7 +89,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         },
                         itemBuilder: (context, idx) {
                           return Image.network(
-                            images[idx],
+                            ApiService.resolveImageUrl(images[idx]),
                             fit: BoxFit.cover,
                             width: double.infinity,
                           );
@@ -326,14 +331,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ]
                     ],
                   ),
-                )
+                ),
               ],
             ),
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildReviewsList(List<dynamic> reviews) {
     if (reviews.isEmpty) {
@@ -412,7 +418,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      rp['image_url'],
+                      ApiService.resolveImageUrl(rp['image_url']),
                       height: 120,
                       width: 120,
                       fit: BoxFit.cover,

@@ -10,7 +10,38 @@ class ApiService {
       : (Platform.isAndroid ? 'http://10.0.2.2:8000' : 'http://localhost:8000');
 
   static String get baseUrl => _baseUrl;
-  static set baseUrl(String url) => _baseUrl = url;
+  static set baseUrl(String url) {
+    // Standardize URL: strip trailing slash
+    if (url.endsWith('/')) {
+      _baseUrl = url.substring(0, url.length - 1);
+    } else {
+      _baseUrl = url;
+    }
+  }
+
+  static String resolveImageUrl(String url) {
+    if (url.isEmpty) return '';
+    // If it's a relative path, prepend base url
+    if (url.startsWith('/')) {
+      return '$_baseUrl$url';
+    }
+    // If it's absolute but pointing to localhost, 127.0.0.1 or 10.0.2.2, replace with the user's custom base URL
+    if (url.contains('127.0.0.1:8000') || url.contains('localhost:8000') || url.contains('10.0.2.2:8000')) {
+      try {
+        final uri = Uri.parse(url);
+        final pathAndQuery = uri.path + (uri.hasQuery ? '?${uri.query}' : '');
+        final formattedPath = pathAndQuery.startsWith('/') ? pathAndQuery : '/$pathAndQuery';
+        return '$_baseUrl$formattedPath';
+      } catch (e) {
+        var resolved = url;
+        resolved = resolved.replaceAll('http://127.0.0.1:8000', _baseUrl);
+        resolved = resolved.replaceAll('http://localhost:8000', _baseUrl);
+        resolved = resolved.replaceAll('http://10.0.2.2:8000', _baseUrl);
+        return resolved;
+      }
+    }
+    return url;
+  }
 
   static Map<String, String> _getHeaders() {
     return {

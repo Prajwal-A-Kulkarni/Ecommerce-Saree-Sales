@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../services/api_service.dart';
 import '../theme/theme.dart';
 import '../widgets/glass_container.dart';
 import 'checkout_screen.dart';
@@ -72,6 +73,7 @@ class _CartScreenState extends State<CartScreen> {
     final finalTotal = (subtotal - _discount) < 0 ? 0.00 : (subtotal - _discount);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: cartItems.isEmpty
           ? Center(
               child: Column(
@@ -116,7 +118,7 @@ class _CartScreenState extends State<CartScreen> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                  prod['image_url'],
+                                  ApiService.resolveImageUrl(prod['image_url']),
                                   width: 80,
                                   height: 80,
                                   fit: BoxFit.cover,

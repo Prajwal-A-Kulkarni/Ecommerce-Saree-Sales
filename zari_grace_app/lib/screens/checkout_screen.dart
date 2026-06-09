@@ -4,6 +4,7 @@ import '../providers/app_provider.dart';
 import '../services/api_service.dart';
 import '../theme/theme.dart';
 import '../widgets/glass_container.dart';
+import '../widgets/gradient_background.dart';
 import 'phonepe_simulation_screen.dart';
 import 'order_tracking_screen.dart';
 
@@ -144,170 +145,175 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<AppProvider>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('CHECKOUT'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: BoutiqueTheme.accentGold),
-          onPressed: () => Navigator.pop(context),
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('CHECKOUT'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: BoutiqueTheme.accentGold),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: BoutiqueTheme.accentGold))
-          : Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text(
-                      'DELIVERY DETAILS',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: BoutiqueTheme.accentGold, fontFamily: 'serif'),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    GlassContainer(
-                      opacity: 0.05,
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _firstNameController,
-                                  style: const TextStyle(color: BoutiqueTheme.textWhite),
-                                  decoration: const InputDecoration(labelText: 'First Name', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: BoutiqueTheme.accentGold))
+            : Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'DELIVERY DETAILS',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: BoutiqueTheme.accentGold, fontFamily: 'serif'),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      GlassContainer(
+                        opacity: 0.05,
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _firstNameController,
+                                    style: const TextStyle(color: BoutiqueTheme.textWhite),
+                                    decoration: const InputDecoration(labelText: 'First Name', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _lastNameController,
-                                  style: const TextStyle(color: BoutiqueTheme.textWhite),
-                                  decoration: const InputDecoration(labelText: 'Last Name', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _lastNameController,
+                                    style: const TextStyle(color: BoutiqueTheme.textWhite),
+                                    decoration: const InputDecoration(labelText: 'Last Name', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _emailController,
-                            style: const TextStyle(color: BoutiqueTheme.textWhite),
-                            decoration: const InputDecoration(labelText: 'Email Address', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                            validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _phoneController,
-                            style: const TextStyle(color: BoutiqueTheme.textWhite),
-                            decoration: const InputDecoration(labelText: 'Mobile Phone', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                            validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _addressController,
-                            style: const TextStyle(color: BoutiqueTheme.textWhite),
-                            decoration: const InputDecoration(labelText: 'Address Line 1', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                            validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _cityController,
-                                  style: const TextStyle(color: BoutiqueTheme.textWhite),
-                                  decoration: const InputDecoration(labelText: 'City', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _stateController,
-                                  style: const TextStyle(color: BoutiqueTheme.textWhite),
-                                  decoration: const InputDecoration(labelText: 'State', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _zipController,
-                                  style: const TextStyle(color: BoutiqueTheme.textWhite),
-                                  decoration: const InputDecoration(labelText: 'PIN Code', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
-                                  validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _instructionsController,
-                            style: const TextStyle(color: BoutiqueTheme.textWhite),
-                            maxLines: 2,
-                            decoration: const InputDecoration(
-                              labelText: 'Delivery Instructions (Optional)',
-                              labelStyle: TextStyle(color: BoutiqueTheme.textMuted),
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _emailController,
+                              style: const TextStyle(color: BoutiqueTheme.textWhite),
+                              decoration: const InputDecoration(labelText: 'Email Address', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                              validator: (v) => v == null || !v.contains('@') ? 'Enter a valid email' : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _phoneController,
+                              style: const TextStyle(color: BoutiqueTheme.textWhite),
+                              decoration: const InputDecoration(labelText: 'Mobile Phone', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _addressController,
+                              style: const TextStyle(color: BoutiqueTheme.textWhite),
+                              decoration: const InputDecoration(labelText: 'Address Line 1', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _cityController,
+                                    style: const TextStyle(color: BoutiqueTheme.textWhite),
+                                    decoration: const InputDecoration(labelText: 'City', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _stateController,
+                                    style: const TextStyle(color: BoutiqueTheme.textWhite),
+                                    decoration: const InputDecoration(labelText: 'State', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: _zipController,
+                                    style: const TextStyle(color: BoutiqueTheme.textWhite),
+                                    decoration: const InputDecoration(labelText: 'PIN Code', labelStyle: TextStyle(color: BoutiqueTheme.textMuted)),
+                                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            TextFormField(
+                              controller: _instructionsController,
+                              style: const TextStyle(color: BoutiqueTheme.textWhite),
+                              maxLines: 2,
+                              decoration: const InputDecoration(
+                                labelText: 'Delivery Instructions (Optional)',
+                                labelStyle: TextStyle(color: BoutiqueTheme.textMuted),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                    // Payment Method selector
-                    const Text(
-                      'PAYMENT METHOD',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: BoutiqueTheme.accentGold, fontFamily: 'serif'),
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    GlassContainer(
-                      opacity: 0.05,
-                      child: Column(
-                        children: [
-                          RadioListTile<String>(
-                            value: 'PhonePe',
-                            groupValue: _paymentMethod,
-                            onChanged: (val) {
-                              setState(() {
-                                _paymentMethod = val!;
-                              });
-                            },
-                            title: const Text('PhonePe Secure Pay', style: TextStyle(color: BoutiqueTheme.textWhite, fontWeight: FontWeight.bold)),
-                            subtitle: const Text('Pay instantly with UPI, Cards, or Wallet', style: TextStyle(color: BoutiqueTheme.textMuted, fontSize: 11)),
-                            activeColor: BoutiqueTheme.accentGold,
-                          ),
-                          const Divider(color: Colors.white12, indent: 16, endIndent: 16),
-                          RadioListTile<String>(
-                            value: 'COD',
-                            groupValue: _paymentMethod,
-                            onChanged: (val) {
-                              setState(() {
-                                _paymentMethod = val!;
-                              });
-                            },
-                            title: const Text('Cash on Delivery (COD)', style: TextStyle(color: BoutiqueTheme.textWhite, fontWeight: FontWeight.bold)),
-                            subtitle: const Text('Pay when the package reaches your doorstep', style: TextStyle(color: BoutiqueTheme.textMuted, fontSize: 11)),
-                            activeColor: BoutiqueTheme.accentGold,
-                          ),
-                        ],
+                      // Payment Method selector
+                      const Text(
+                        'PAYMENT METHOD',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.0, color: BoutiqueTheme.accentGold, fontFamily: 'serif'),
                       ),
-                    ),
-                    const SizedBox(height: 32),
+                      const SizedBox(height: 12),
+                      
+                      GlassContainer(
+                        opacity: 0.05,
+                        child: Column(
+                          children: [
+                            RadioListTile<String>(
+                              value: 'PhonePe',
+                              groupValue: _paymentMethod,
+                              onChanged: (val) {
+                                setState(() {
+                                  _paymentMethod = val!;
+                                });
+                              },
+                              title: const Text('PhonePe Secure Pay', style: TextStyle(color: BoutiqueTheme.textWhite, fontWeight: FontWeight.bold)),
+                              subtitle: const Text('Pay instantly with UPI, Cards, or Wallet', style: TextStyle(color: BoutiqueTheme.textMuted, fontSize: 11)),
+                              activeColor: BoutiqueTheme.accentGold,
+                            ),
+                            const Divider(color: Colors.white12, indent: 16, endIndent: 16),
+                            RadioListTile<String>(
+                              value: 'COD',
+                              groupValue: _paymentMethod,
+                              onChanged: (val) {
+                                setState(() {
+                                  _paymentMethod = val!;
+                                });
+                              },
+                              title: const Text('Cash on Delivery (COD)', style: TextStyle(color: BoutiqueTheme.textWhite, fontWeight: FontWeight.bold)),
+                              subtitle: const Text('Pay when the package reaches your doorstep', style: TextStyle(color: BoutiqueTheme.textMuted, fontSize: 11)),
+                              activeColor: BoutiqueTheme.accentGold,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
-                    ElevatedButton(
-                      onPressed: _submitCheckout,
-                      child: const Text('PLACE ORDER NOW'),
-                    ),
-                  ],
+                      ElevatedButton(
+                        onPressed: _submitCheckout,
+                        child: const Text('PLACE ORDER NOW'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }

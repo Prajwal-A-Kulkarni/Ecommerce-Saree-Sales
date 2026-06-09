@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../theme/theme.dart';
 import '../widgets/glass_container.dart';
+import '../widgets/gradient_background.dart';
 
 class LogisticsDashboardScreen extends StatefulWidget {
   const LogisticsDashboardScreen({super.key});
@@ -146,99 +147,104 @@ class _LogisticsDashboardScreenState extends State<LogisticsDashboardScreen> wit
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('LOGISTICS PORTAL'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: BoutiqueTheme.accentGold),
-          onPressed: () => Navigator.pop(context),
+    return GradientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('LOGISTICS PORTAL'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: BoutiqueTheme.accentGold),
+            onPressed: () => Navigator.pop(context),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh, color: BoutiqueTheme.accentGold),
+              onPressed: _refreshDashboard,
+            )
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: BoutiqueTheme.accentGold),
-            onPressed: _refreshDashboard,
-          )
-        ],
-      ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _dashboardFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: BoutiqueTheme.accentGold));
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
-          }
+        body: FutureBuilder<Map<String, dynamic>>(
+          future: _dashboardFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: BoutiqueTheme.accentGold));
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
+            }
 
-          final data = snapshot.data ?? {};
-          final totalRev = data['total_revenue'] ?? 0.0;
-          final totalOrders = data['total_orders'] ?? 0;
-          final pendingCount = data['pending_shipments'] ?? 0;
-          final transitCount = data['in_transit_shipments'] ?? 0;
-          final deliveredCount = data['completed_deliveries'] ?? 0;
+            final data = snapshot.data ?? {};
+            final totalRev = data['total_revenue'] ?? 0.0;
+            final totalOrders = data['total_orders'] ?? 0;
+            final pendingCount = data['pending_shipments'] ?? 0;
+            final transitCount = data['in_transit_shipments'] ?? 0;
+            final deliveredCount = data['completed_deliveries'] ?? 0;
 
-          final pendingOrders = data['pending_orders'] ?? [];
-          final transitOrders = data['transit_orders'] ?? [];
-          final deliveredOrders = data['delivered_orders'] ?? [];
-          final failedOrders = data['failed_orders'] ?? [];
+            final pendingOrders = data['pending_orders'] ?? [];
+            final transitOrders = data['transit_orders'] ?? [];
+            final deliveredOrders = data['delivered_orders'] ?? [];
+            final failedOrders = data['failed_orders'] ?? [];
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Stats Grid
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: _buildStatCard('Net Revenue', '₹$totalRev', Icons.currency_rupee)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildStatCard('Total Orders', '$totalOrders', Icons.list_alt)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: _buildStatCard('In Transit', '$transitCount', Icons.local_shipping)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _buildStatCard('Completed', '$deliveredCount', Icons.check_circle_outline)),
-                      ],
-                    ),
-                  ],
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Stats Grid
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(child: _buildStatCard('Net Revenue', '₹$totalRev', Icons.currency_rupee)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildStatCard('Total Orders', '$totalOrders', Icons.list_alt)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(child: _buildStatCard('In Transit', '$transitCount', Icons.local_shipping)),
+                          const SizedBox(width: 12),
+                          Expanded(child: _buildStatCard('Completed', '$deliveredCount', Icons.check_circle_outline)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              // TabBar
-              TabBar(
-                controller: _tabController,
-                indicatorColor: BoutiqueTheme.accentGold,
-                labelColor: BoutiqueTheme.accentGold,
-                unselectedLabelColor: BoutiqueTheme.textMuted,
-                tabs: [
-                  Tab(text: 'Needs Proc (${pendingOrders.length})'),
-                  Tab(text: 'Transit (${transitOrders.length})'),
-                  Tab(text: 'Delivered (${deliveredOrders.length})'),
-                  Tab(text: 'Failed (${failedOrders.length})'),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Tab View
-              Expanded(
-                child: TabBarView(
+                // TabBar
+                TabBar(
                   controller: _tabController,
-                  children: [
-                    _buildOrdersTab(pendingOrders),
-                    _buildOrdersTab(transitOrders),
-                    _buildOrdersTab(deliveredOrders),
-                    _buildOrdersTab(failedOrders),
+                  indicatorColor: BoutiqueTheme.accentGold,
+                  labelColor: BoutiqueTheme.accentGold,
+                  unselectedLabelColor: BoutiqueTheme.textMuted,
+                  tabs: [
+                    Tab(text: 'Needs Proc (${pendingOrders.length})'),
+                    Tab(text: 'Transit (${transitOrders.length})'),
+                    Tab(text: 'Delivered (${deliveredOrders.length})'),
+                    Tab(text: 'Failed (${failedOrders.length})'),
                   ],
                 ),
-              ),
-            ],
-          );
-        },
+                const SizedBox(height: 12),
+
+                // Tab View
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildOrdersTab(pendingOrders),
+                      _buildOrdersTab(transitOrders),
+                      _buildOrdersTab(deliveredOrders),
+                      _buildOrdersTab(failedOrders),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

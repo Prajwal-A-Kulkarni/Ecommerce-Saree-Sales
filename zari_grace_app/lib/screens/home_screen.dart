@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = Provider.of<AppProvider>(context);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: RefreshIndicator(
         onRefresh: () async {
           _refreshHomeData();
@@ -168,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
           width: double.infinity,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: NetworkImage(banner['image_url']),
+              image: NetworkImage(ApiService.resolveImageUrl(banner['image_url'])),
               fit: BoxFit.cover,
             ),
           ),
@@ -258,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 image: DecorationImage(
-                  image: NetworkImage(cat['image_url']),
+                  image: NetworkImage(ApiService.resolveImageUrl(cat['image_url'])),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -334,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                           child: Image.network(
-                            prod['image_url'],
+                            ApiService.resolveImageUrl(prod['image_url']),
                             height: 150,
                             width: 160,
                             fit: BoxFit.cover,

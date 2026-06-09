@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
+import '../services/api_service.dart';
 import '../theme/theme.dart';
 import '../widgets/glass_container.dart';
 import 'product_detail_screen.dart';
@@ -14,6 +15,7 @@ class WishlistScreen extends StatelessWidget {
     final wishlist = provider.wishlist;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: wishlist.isEmpty
           ? Center(
               child: Column(
@@ -67,7 +69,7 @@ class WishlistScreen extends StatelessWidget {
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                                 child: Image.network(
-                                  prod['image_url'],
+                                  ApiService.resolveImageUrl(prod['image_url']),
                                   fit: BoxFit.cover,
                                 ),
                               ),

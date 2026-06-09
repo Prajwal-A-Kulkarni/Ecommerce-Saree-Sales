@@ -127,44 +127,81 @@ class _BrowseScreenState extends State<BrowseScreen> {
     final provider = Provider.of<AppProvider>(context);
 
     return Scaffold(
-      body: Column(
-        children: [
-          // Filter Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GlassContainer(
-                    opacity: 0.05,
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    radius: 12,
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(color: BoutiqueTheme.textWhite, fontSize: 14),
-                      decoration: const InputDecoration(
-                        hintText: 'Search sarees...',
-                        hintStyle: TextStyle(color: Colors.white24),
-                        border: InputBorder.none,
-                        icon: Icon(Icons.search, color: BoutiqueTheme.accentGold, size: 20),
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Filter Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GlassContainer(
+                      opacity: 0.05,
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                      radius: 12,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.search, color: BoutiqueTheme.accentGold, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              style: const TextStyle(color: BoutiqueTheme.textWhite, fontSize: 14),
+                              decoration: const InputDecoration(
+                                hintText: 'Search sarees...',
+                                hintStyle: TextStyle(color: Colors.white24),
+                                border: InputBorder.none,
+                                isDense: true,
+                              ),
+                              onChanged: (_) {
+                                setState(() {});
+                              },
+                              onSubmitted: (_) => _loadProducts(),
+                            ),
+                          ),
+                          if (_searchController.text.isNotEmpty)
+                            GestureDetector(
+                              onTap: () {
+                                _searchController.clear();
+                                _loadProducts();
+                                setState(() {});
+                              },
+                              child: const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 4.0),
+                                child: Icon(Icons.close, color: BoutiqueTheme.accentGold, size: 16),
+                              ),
+                            ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: _loadProducts,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: BoutiqueTheme.accentGold.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.arrow_forward, color: BoutiqueTheme.accentGold, size: 16),
+                            ),
+                          ),
+                        ],
                       ),
-                      onSubmitted: (_) => _loadProducts(),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                GestureDetector(
-                  onTap: _showSortOptions,
-                  child: GlassContainer(
-                    opacity: 0.05,
-                    padding: const EdgeInsets.all(12),
-                    radius: 12,
-                    child: const Icon(Icons.sort, color: BoutiqueTheme.accentGold),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: _showSortOptions,
+                    child: GlassContainer(
+                      opacity: 0.05,
+                      padding: const EdgeInsets.all(12),
+                      radius: 12,
+                      child: const Icon(Icons.sort, color: BoutiqueTheme.accentGold),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           // Categories Tags
           SizedBox(
@@ -251,7 +288,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                                         ClipRRect(
                                           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                                           child: Image.network(
-                                            prod['image_url'],
+                                            ApiService.resolveImageUrl(prod['image_url']),
                                             fit: BoxFit.cover,
                                           ),
                                         ),
@@ -382,6 +419,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       ),
           ),
         ],
+        ),
       ),
     );
   }
