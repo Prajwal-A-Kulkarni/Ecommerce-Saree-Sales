@@ -1030,3 +1030,364 @@ def ajax_send_recovery_email(request):
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
+
+# Zari & Grace REST APIs for Flutter Mobile App
+from django.views.decorators.csrf import csrf_exempt
+
+def _serialize_product(request, p):
+    first_image = p.images.first()
+    image_url = request.build_absolute_uri(first_image.image.url) if first_image else ""
+    return {
+        'id': p.id,
+        'name': p.name,
+        'slug': p.slug,
+        'price': float(p.price),
+        'sale_price': float(p.sale_price) if p.sale_price else None,
+        'description': p.description,
+        'image_url': image_url,
+        'category_name': p.category.name,
+        'category_slug': p.category.slug,
+        'stock': p.stock,
+        'is_featured': p.is_featured,
+        'is_active': p.is_active,
+    }
+
+def api_home(request):
+    banners = []
+    for b in HomeBanner.objects.filter(is_active=True):
+        img_url = request.build_absolute_uri(b.image.url) if b.image else ""
+        banners.append({
+            'title': b.title,
+            'subtitle': b.subtitle,
+            'image_url': img_url,
+            'cta_text': b.cta_text,
+            'cta_url': b.cta_url,
+        })
+        
+    categories = []
+    for c in Category.objects.all()[:6]:
+        img_url = request.build_absolute_uri(c.image.url) if c.image else ""
+        categories.append({
+            'id': c.id,
+            'name': c.name,
+            'slug': c.slug,
+            'description': c.description,
+            'image_url': img_url,
+        })
+        
+    featured = [_serialize_product(request, p) for p in Product.objects.filter(is_featured=True, is_active=True)[:8]]
+    latest = [_serialize_product(request, p) for p in Product.objects.filter(is_active=True).order_by('-created_at')[:4]]
+    
+    return JsonResponse({
+        'banners': banners,
+        'categories': categories,
+        'featured_products': featured,
+        'latest_products': latest,
+    })
+
+def api_products(request):
+    category_slug = request.GET.get('category')
+    sort_by = request.GET.get('sort', 'newest')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    search_query = request.GET.get('search')
+
+    products = Product.objects.filter(is_active=True)
+
+    if category_slug:
+        products = products.filter(category__slug=category_slug)
+    if search_query:
+        products = products.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+
+    if sort_by == 'price_low':
+        products = products.order_by('price')
+    elif sort_by == 'price_high':
+        products = products.order_by('-price')
+    elif sort_by == 'popular':
+        products = products.filter(is_featured=True)
+    else:
+        products = products.order_by('-created_at')
+
+    serialized = [_serialize_product(request, p) for p in products]
+    return JsonResponse({'products': serialized})
+
+def api_product_detail(request, slug):
+    p = get_object_or_404(Product, slug=slug, is_active=True)
+    images = [request.build_absolute_uri(img.image.url) for img in p.images.all()]
+    
+    reviews = []
+    for r in p.reviews.all().order_by('-created_at'):
+        reviews.append({
+            'name': r.name,
+            'rating': r.rating,
+            'review_text': r.review_text,
+            'created_at': r.created_at.strftime('%d %b %Y'),
+        })
+        
+    from django.db.models import Avg
+    avg_rating = p.reviews.aggregate(Avg('rating'))['rating__avg'] or 0.0
+    avg_rating = round(float(avg_rating), 1)
+    
+    prod_data = _serialize_product(request, p)
+    prod_data['images'] = images
+    prod_data['reviews'] = reviews
+    prod_data['avg_rating'] = avg_rating
+    prod_data['reviews_count'] = len(reviews)
+    
+    # Related products
+    related = []
+    for rp in Product.objects.filter(category=p.category, is_active=True).exclude(id=p.id)[:4]:
+        related.append(_serialize_product(request, rp))
+    prod_data['related_products'] = related
+
+    return JsonResponse(prod_data)
+
+@csrf_exempt
+def api_login(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Post required'}, status=405)
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({
+                'success': True,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'is_staff': user.is_staff,
+                }
+            })
+        return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@csrf_exempt
+def api_register(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Post required'}, status=405)
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email', '')
+        
+        from django.contrib.auth.models import User
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({'success': False, 'message': 'Username already exists'}, status=400)
+            
+        user = User.objects.create_user(username=username, password=password, email=email)
+        login(request, user)
+        return JsonResponse({
+            'success': True,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_staff': user.is_staff,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@csrf_exempt
+def api_checkout(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Post required'}, status=405)
+    try:
+        data = json.loads(request.body)
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        email = data.get('email')
+        phone = data.get('phone')
+        address_line1 = data.get('address_line1')
+        address_line2 = data.get('address_line2', '')
+        city = data.get('city')
+        state = data.get('state')
+        postal_code = data.get('postal_code')
+        payment_method = data.get('payment_method', 'PhonePe')
+        delivery_instructions = data.get('delivery_instructions', '')
+        items = data.get('items', []) # list of {product_id, quantity}
+        
+        # Calculate subtotal
+        subtotal = 0.00
+        order_items_to_create = []
+        for it in items:
+            product = get_object_or_404(Product, id=it['product_id'])
+            qty = int(it['quantity'])
+            subtotal += float(product.current_price) * qty
+            order_items_to_create.append((product, qty))
+            
+        # Optional coupon support (could be passed in JSON)
+        coupon_code = data.get('coupon_code')
+        discount_amount = 0.00
+        coupon = None
+        if coupon_code:
+            try:
+                from .models import Coupon
+                coupon = Coupon.objects.get(code=coupon_code)
+                if coupon.is_valid():
+                    if coupon.discount_type == 'Percentage':
+                        discount_amount = float(subtotal) * float(coupon.value) / 100.00
+                    else:
+                        discount_amount = float(coupon.value)
+                    coupon.uses_count += 1
+                    coupon.save()
+            except:
+                pass
+                
+        final_total = max(0.00, subtotal - discount_amount)
+        
+        username = data.get('username')
+        user = None
+        if username:
+            from django.contrib.auth.models import User
+            user = User.objects.filter(username=username).first()
+            
+        order = Order.objects.create(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            address_line1=address_line1,
+            address_line2=address_line2,
+            city=city,
+            state=state,
+            postal_code=postal_code,
+            total_amount=final_total,
+            coupon=coupon,
+            discount_amount=discount_amount,
+            payment_method=payment_method,
+            delivery_instructions=delivery_instructions,
+            status='Pending'
+        )
+        
+        for product, qty in order_items_to_create:
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                price=product.current_price,
+                quantity=qty
+            )
+            
+        return JsonResponse({
+            'success': True,
+            'order_id': order.id,
+            'total': final_total,
+            'status': order.status
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+def api_order_track(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    status_map = {
+        'Pending': 1,
+        'Paid': 1,
+        'Packed': 2,
+        'Shipped': 3,
+        'In Route': 4,
+        'Delivered': 5,
+        'Failed': 0,
+    }
+    
+    current_stage = status_map.get(order.status, 0)
+    
+    items = []
+    for it in order.items.all():
+        first_img = it.product.images.first()
+        img_url = request.build_absolute_uri(first_img.image.url) if first_img else ""
+        items.append({
+            'product_name': it.product.name,
+            'price': float(it.price),
+            'quantity': it.quantity,
+            'image_url': img_url,
+        })
+        
+    return JsonResponse({
+        'order_id': order.id,
+        'status': order.status,
+        'current_stage': current_stage,
+        'total': float(order.total_amount),
+        'customer_name': f"{order.first_name} {order.last_name}",
+        'phone': order.phone,
+        'address': f"{order.address_line1}, {order.city}, {order.state} - {order.postal_code}",
+        'updated_at': order.updated_at.strftime('%d %b %Y, %H:%M'),
+        'items': items,
+        'shipping_courier': order.shipping_courier or "Pending",
+        'shipping_id': order.shipping_id or "Pending",
+    })
+
+def api_logistics_dashboard(request):
+    orders = Order.objects.all().order_by('-created_at')
+    
+    successful_orders = orders.filter(status__in=['Paid', 'Packed', 'Shipped', 'In Route', 'Delivered'])
+    total_revenue = sum(o.total_amount for o in successful_orders)
+    total_orders = orders.count()
+    pending_shipments = orders.filter(status__in=['Pending', 'Paid']).count()
+    in_transit_shipments = orders.filter(status__in=['Packed', 'Shipped', 'In Route']).count()
+    completed_deliveries = orders.filter(status='Delivered').count()
+    
+    def serialize_order_summary(o):
+        return {
+            'order_id': o.id,
+            'customer_name': f"{o.first_name} {o.last_name}",
+            'date': o.created_at.strftime('%d %b %Y, %H:%M'),
+            'amount': float(o.total_amount),
+            'status': o.status,
+            'phone': o.phone,
+            'shipping_courier': o.shipping_courier or "",
+            'shipping_id': o.shipping_id or "",
+        }
+        
+    pending_list = [serialize_order_summary(o) for o in orders.filter(status__in=['Pending', 'Paid'])]
+    transit_list = [serialize_order_summary(o) for o in orders.filter(status__in=['Packed', 'Shipped', 'In Route'])]
+    delivered_list = [serialize_order_summary(o) for o in orders.filter(status='Delivered')]
+    failed_list = [serialize_order_summary(o) for o in orders.filter(status='Failed')]
+    
+    return JsonResponse({
+        'total_revenue': float(total_revenue),
+        'total_orders': total_orders,
+        'pending_shipments': pending_shipments,
+        'in_transit_shipments': in_transit_shipments,
+        'completed_deliveries': completed_deliveries,
+        'pending_orders': pending_list,
+        'transit_orders': transit_list,
+        'delivered_orders': delivered_list,
+        'failed_orders': failed_list,
+    })
+
+@csrf_exempt
+def api_logistics_update_status(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Post required'}, status=405)
+    try:
+        data = json.loads(request.body)
+        order_id = data.get('order_id')
+        status = data.get('status')
+        shipping_courier = data.get('shipping_courier', '')
+        shipping_id = data.get('shipping_id', '')
+        
+        order = get_object_or_404(Order, id=order_id)
+        if status:
+            order.status = status
+        if shipping_courier:
+            order.shipping_courier = shipping_courier
+        if shipping_id:
+            order.shipping_id = shipping_id
+        order.save()
+        return JsonResponse({'success': True, 'message': 'Order updated successfully'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+

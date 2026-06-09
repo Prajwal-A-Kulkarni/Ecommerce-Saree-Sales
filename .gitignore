@@ -44,3 +44,7 @@ desktop.ini
 # Migrations (optional — remove if you want to keep them)
 # store/migrations/
 # payments/migrations/
+
+# Flutter SDK
+flutter_sdk/
+

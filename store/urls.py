@@ -42,4 +42,16 @@ urlpatterns = [
     path('ajax/review/submit/', views.ajax_submit_review, name='ajax_submit_review'),
     path('ajax/search/autocomplete/', views.ajax_search_autocomplete, name='ajax_search_autocomplete'),
     path('ajax/logistics/send-recovery/', views.ajax_send_recovery_email, name='ajax_send_recovery_email'),
+
+    # API Endpoints for Flutter App
+    path('api/home/', views.api_home, name='api_home'),
+    path('api/products/', views.api_products, name='api_products'),
+    path('api/product/<slug:slug>/', views.api_product_detail, name='api_product_detail'),
+    path('api/login/', views.api_login, name='api_login'),
+    path('api/register/', views.api_register, name='api_register'),
+    path('api/checkout/', views.api_checkout, name='api_checkout'),
+    path('api/order/<int:order_id>/track/', views.api_order_track, name='api_order_track'),
+    path('api/logistics/dashboard/', views.api_logistics_dashboard, name='api_logistics_dashboard'),
+    path('api/logistics/update-status/', views.api_logistics_update_status, name='api_logistics_update_status'),
 ]
+
