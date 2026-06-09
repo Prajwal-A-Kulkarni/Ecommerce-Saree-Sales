@@ -162,76 +162,144 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(builder: (_) => const BrowseScreen()),
         );
       },
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage(ApiService.resolveImageUrl(banner['image_url'])),
-              fit: BoxFit.cover,
-            ),
+      child: Container(
+        height: 220,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          image: DecorationImage(
+            image: NetworkImage(ApiService.resolveImageUrl(banner['image_url'])),
+            fit: BoxFit.cover,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: BoutiqueTheme.accentGold.withOpacity(0.08),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
+              // Dark gradient overlay
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
+                    begin: Alignment.bottomRight,
+                    end: Alignment.topLeft,
                     colors: [
-                      BoutiqueTheme.primaryBg.withOpacity(0.9),
-                      BoutiqueTheme.primaryBg.withOpacity(0.2),
+                      Colors.black.withOpacity(0.6),
+                      Colors.black.withOpacity(0.15),
                     ],
                   ),
                 ),
               ),
+              
+              // Floating Glassmorphic Container
               Positioned(
-                bottom: 24,
-                left: 20,
-                right: 20,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      banner['title'],
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2.0,
-                        color: BoutiqueTheme.textWhite,
-                        fontFamily: 'serif',
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      banner['subtitle'],
-                      style: const TextStyle(
-                        fontSize: 12,
-                        letterSpacing: 1.5,
-                        color: BoutiqueTheme.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: BoutiqueTheme.accentGold,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        banner['cta_text'],
+                left: 12,
+                right: 12,
+                bottom: 12,
+                child: GlassContainer(
+                  blur: 20.0,
+                  opacity: 0.12,
+                  radius: 16,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  borderColor: BoutiqueTheme.accentGold.withOpacity(0.2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        banner['title'].toString().toUpperCase(),
                         style: const TextStyle(
-                          color: BoutiqueTheme.primaryBg,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2.0,
+                          color: BoutiqueTheme.textWhite,
+                          fontFamily: 'serif',
+                          shadows: [
+                            Shadow(
+                              color: Colors.black54,
+                              offset: Offset(1, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
                         ),
                       ),
-                    )
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        banner['subtitle'],
+                        style: const TextStyle(
+                          fontSize: 10,
+                          letterSpacing: 0.8,
+                          color: BoutiqueTheme.textMuted,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: BoutiqueTheme.accentGold,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: BoutiqueTheme.accentGold.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  banner['cta_text'].toString().toUpperCase(),
+                                  style: const TextStyle(
+                                    color: BoutiqueTheme.primaryBg,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 10,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(Icons.arrow_forward_rounded, size: 10, color: BoutiqueTheme.primaryBg),
+                              ],
+                            ),
+                          ),
+                          
+                          // Glass luxury tag
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.white10),
+                            ),
+                            child: const Text(
+                              'LIMITED EDITION',
+                              style: TextStyle(
+                                color: BoutiqueTheme.accentGold,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),

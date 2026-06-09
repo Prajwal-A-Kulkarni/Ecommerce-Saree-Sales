@@ -53,5 +53,6 @@ urlpatterns = [
     path('api/order/<int:order_id>/track/', views.api_order_track, name='api_order_track'),
     path('api/logistics/dashboard/', views.api_logistics_dashboard, name='api_logistics_dashboard'),
     path('api/logistics/update-status/', views.api_logistics_update_status, name='api_logistics_update_status'),
+    path('api/orders/', views.api_user_orders, name='api_user_orders'),
 ]
 

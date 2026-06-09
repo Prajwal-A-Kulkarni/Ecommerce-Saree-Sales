@@ -10,6 +10,7 @@ import 'cart_screen.dart';
 import 'wishlist_screen.dart';
 import 'welcome_screen.dart';
 import 'logistics_dashboard_screen.dart';
+import 'my_orders_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -17,6 +18,8 @@ class MainNavigation extends StatefulWidget {
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
+
+class _ProductNavigationState {} // Ignore, just helper boundary
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
@@ -40,6 +43,16 @@ class _MainNavigationState extends State<MainNavigation> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           actions: [
+            IconButton(
+              icon: const Icon(Icons.history_rounded, color: BoutiqueTheme.accentGold),
+              tooltip: 'My Orders',
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MyOrdersScreen()),
+                );
+              },
+            ),
+            
             // If staff/admin, show logistics portal entry
             if (provider.isLoggedIn && provider.isStaff)
               IconButton(

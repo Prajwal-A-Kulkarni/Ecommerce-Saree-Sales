@@ -1391,3 +1391,30 @@ def api_logistics_update_status(request):
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
+def api_user_orders(request):
+    username = request.GET.get('username')
+    if not username:
+        return JsonResponse({'success': False, 'message': 'Username required'}, status=400)
+    
+    from django.contrib.auth.models import User
+    user = User.objects.filter(username=username).first()
+    
+    if not user:
+        # If guest checkouts exist matching email
+        orders = Order.objects.filter(email__iexact=username).order_by('-created_at')
+    else:
+        orders = Order.objects.filter(Q(user=user) | Q(email__iexact=user.email)).order_by('-created_at')
+        
+    serialized = []
+    for o in orders:
+        serialized.append({
+            'order_id': o.id,
+            'date': o.created_at.strftime('%d %b %Y, %H:%M'),
+            'amount': float(o.total_amount),
+            'status': o.status,
+            'items_count': o.items.count(),
+        })
+    return JsonResponse({'orders': serialized})
+
+
+

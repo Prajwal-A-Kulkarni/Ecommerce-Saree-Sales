@@ -259,6 +259,24 @@ class ApiService {
     }
   }
 
+  // GET User order history list
+  static Future<List<dynamic>> getUserOrders(String username) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/orders/?username=${Uri.encodeComponent(username)}'),
+        headers: _getHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['orders'] ?? [];
+      } else {
+        throw Exception('Failed to load user orders');
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
   // GET Logistics Dashboard data
   static Future<Map<String, dynamic>> getLogisticsDashboard() async {
     try {
